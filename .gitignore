@@ -1,3 +1,10 @@
 JPEGAutoRotatorExt/JPEGAutoRotatorExt.aps
 .vs/JPEGAutoRotatorExt/v14/.suo
 *.filters
+*.tlog
+JPEGAutoRotatorLib/x64/Debug/JPEGAutoRotatorLib.Build.CppClean.log
+*.ipch
+*.idb
+*.pdb
+*.opendb
+JPEGAutoRotatorExt.VC.db
