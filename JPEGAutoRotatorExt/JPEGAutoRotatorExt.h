@@ -47,6 +47,7 @@ public:
     }
 
     static HRESULT s_CreateInstance(__in_opt IUnknown *punkOuter, __in REFIID riid, __out void **ppv);
+    static DWORD WINAPI s_LaunchThreadProc(void* pData);
 
 private:
     ~CJPEGAutoRotatorMenu();

@@ -1,4 +1,5 @@
 #pragma once
+#include <ShlObj.h>
 
 class CRotationItem : public IUnknown
 {
@@ -32,6 +33,8 @@ public:
     }
 
     HRESULT GetItem(__deref_out IShellItem** ppsi);
+    HRESULT SetItem(__in IShellItem* psi);
+    HRESULT Rotate();
 
     static HRESULT s_CreateInstance(__in IShellItem* psi, __deref_out CRotationItem** ppri);
 
@@ -43,12 +46,12 @@ private:
     long  m_cRef;
 };
 
+// Maximum number of running worker threads
+// We should never exceed the number of logical processors
+#define MAX_ROTATION_WORKER_THREADS 64
 
-struct
-{
-    
-    CComPtr<IObjectArray> m_spoa;
-};
+// Minimum amount of work to schedule to a worker thread
+#define MIN_ROTATION_WORK_SIZE 5
 
 class CRotationManager : public IUnknown
 {
@@ -83,19 +86,33 @@ public:
 
     HRESULT PerformRotation();
 
-    static HRESULT s_CreateInstance(__in IDataObject* pdo, HWND hwnd, __deref_out CRotationManager** pprm);
+    static HRESULT s_CreateInstance(__in IDataObject* pdo, __deref_out CRotationManager** pprm);
 
 private:
     HRESULT _EnumerateDataObject();
-    HRESULT _Init();
+    HRESULT _Init(__in IDataObject* pdo);
     HRESULT _Cleanup();
+    void _UpdateProgressForWorkerThread(UINT uThreadId, UINT uCompleted);
+    HRESULT _CreateWorkerThreads();
+
+    static UINT s_GetLogicalProcessorCount();
 
     ~CRotationManager();
 
 private:
+    struct ROTATION_WORKER_THREAD_INFO
+    {
+        HANDLE hWorker;
+        DWORD dwThreadId;
+        UINT uCompletedItems;
+        UINT uTotalItems;
+    };
+
+    ROTATION_WORKER_THREAD_INFO m_workerThreadInfo[MAX_ROTATION_WORKER_THREADS];
+    UINT m_uWorkerThreadCount;
     CComPtr<IDataObject> m_spdo;
     CComPtr<IObjectCollection> m_spoc;
+    CComPtr<IProgressDialog> m_sppd;
     long  m_cRef;
-    HWND  m_hwndParent;
     ULONG_PTR m_gdiplusToken;
 };

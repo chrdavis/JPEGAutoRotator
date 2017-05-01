@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "JPEGAutoRotatorExt.h"
+#include <RotationManager.h>
 #include "resource.h"
 
 static HINSTANCE g_hInst = 0;
@@ -62,31 +63,35 @@ HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
 
     if ((IS_INTRESOURCE(pici->lpVerb)) &&
         (LOWORD(pici->lpVerb) == 0))
-
     {
-        hr = S_OK;
-        // TODO: Update params
-        /*RENAMEPARAMS *prp = (RENAMEPARAMS*)LocalAlloc(LPTR, sizeof(*prp));
-        if (prp)
+        IStream* pstrm = nullptr;
+        if (SUCCEEDED(CoMarshalInterThreadInterfaceInStream(__uuidof(m_spdo), m_spdo, &pstrm)))
         {
-            prp->hwndParent = pici->hwnd;
-
-            if (SUCCEEDED(CoMarshalInterThreadInterfaceInStream(__uuidof(_pdo), _pdo, &(prp->pstmDataObject))))
+            if (!SHCreateThread(s_LaunchThreadProc, pstrm, CTF_COINIT | CTF_PROCESS_REF, nullptr))
             {
-                if (!SHCreateThread(LaunchThreadProc, prp, CTF_COINIT | CTF_PROCESS_REF, NULL))
-                {
-                    prp->pstmDataObject->Release(); // if we failed to create the thread, then we must release the stream
-                    LocalFree(prp);
-                }
+                pstrm->Release(); // if we failed to create the thread, then we must release the stream
             }
-            else
-            {
-                LocalFree(prp);
-            }
-        }*/
+        }
     }
 
     return hr;
 }
 
+DWORD WINAPI CJPEGAutoRotatorMenu::s_LaunchThreadProc(void* pData)
+{
+    IStream* pstrm = (IStream*)pData;
+
+    CComPtr<IDataObject> spdo;
+    if (SUCCEEDED(CoGetInterfaceAndReleaseStream(pstrm, IID_PPV_ARGS(&spdo))))
+    {
+        CRotationManager* prm;
+        if (SUCCEEDED(CRotationManager::s_CreateInstance(spdo, &prm)))
+        {
+            prm->PerformRotation();
+            prm->Release();
+        }
+    }
+
+    return 0; // ignored
+}
 
