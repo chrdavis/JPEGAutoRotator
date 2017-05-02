@@ -1,3 +1,6 @@
-﻿     Creating library C:\Users\Chris\Source\Repos\JPEGAutoRotatorShellExtension\Debug\JPEGAutoRotatorExt.lib and object C:\Users\Chris\Source\Repos\JPEGAutoRotatorShellExtension\Debug\JPEGAutoRotatorExt.exp
+﻿  JPEGAutoRotatorExt.cpp
+c:\users\chris\source\repos\jpegautorotatorshellextension\jpegautorotatorext\jpegautorotatorext.h(19): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
+c:\users\chris\source\repos\jpegautorotatorshellextension\jpegautorotatorlib\rotationmanager.h(17): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
+c:\users\chris\source\repos\jpegautorotatorshellextension\jpegautorotatorlib\rotationmanager.h(75): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
   JPEGAutoRotatorExt.vcxproj -> C:\Users\Chris\Source\Repos\JPEGAutoRotatorShellExtension\Debug\JPEGAutoRotatorExt.dll
   JPEGAutoRotatorExt.vcxproj -> C:\Users\Chris\Source\Repos\JPEGAutoRotatorShellExtension\Debug\JPEGAutoRotatorExt.pdb (Full PDB)

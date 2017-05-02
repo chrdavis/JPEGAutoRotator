@@ -67,7 +67,7 @@ HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
         IStream* pstrm = nullptr;
         if (SUCCEEDED(CoMarshalInterThreadInterfaceInStream(__uuidof(m_spdo), m_spdo, &pstrm)))
         {
-            if (!SHCreateThread(s_LaunchThreadProc, pstrm, CTF_COINIT | CTF_PROCESS_REF, nullptr))
+            if (!SHCreateThread(s_RotationManagerThreadProc, pstrm, CTF_COINIT | CTF_PROCESS_REF, nullptr))
             {
                 pstrm->Release(); // if we failed to create the thread, then we must release the stream
             }
@@ -77,7 +77,12 @@ HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
     return hr;
 }
 
-DWORD WINAPI CJPEGAutoRotatorMenu::s_LaunchThreadProc(void* pData)
+// TODO: can we create the progress dialog here and setup a callback on the rotation manager?
+// TODO: What is the lifetime of CJPEGAutoRotatorMenu?  Is it released after we enter the thread below?
+// TODO: Or can it host our callback interface and update the progress dialog?
+// TODO: We should also convert the IDataObject to IShellItems and create IRenameItems.  Then add
+// TODO: them to the manager here.
+DWORD WINAPI CJPEGAutoRotatorMenu::s_RotationManagerThreadProc(void* pData)
 {
     IStream* pstrm = (IStream*)pData;
 

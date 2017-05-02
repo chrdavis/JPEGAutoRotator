@@ -1,7 +1,8 @@
 #pragma once
 #include <ShlObj.h>
+#include "RotationInterfaces.h"
 
-class CRotationItem : public IUnknown
+class CRotationItem : public IRotationItem
 {
 public:
     CRotationItem();
@@ -11,7 +12,7 @@ public:
     {
         static const QITAB qit[] =
         {
-            QITABENT(CRotationItem, IUnknown),
+            QITABENT(CRotationItem, IRotationItem),
             { 0, 0 },
         };
         return QISearch(this, qit, riid, ppv);
@@ -32,19 +33,25 @@ public:
         return cRef;
     }
 
-    HRESULT GetItem(__deref_out IShellItem** ppsi);
-    HRESULT SetItem(__in IShellItem* psi);
-    HRESULT Rotate();
+    IFACEMETHODIMP GetItem(__deref_out IShellItem** ppsi);
+    IFACEMETHODIMP SetItem(__in IShellItem* psi);
+    IFACEMETHODIMP GetResult(__out HRESULT* phrResult);
+    IFACEMETHODIMP SetResult(__in HRESULT hrResult);
+    IFACEMETHODIMP Rotate();
 
-    static HRESULT s_CreateInstance(__in IShellItem* psi, __deref_out CRotationItem** ppri);
+    static HRESULT s_CreateInstance(__in IShellItem* psi, __deref_out IRotationItem** ppri);
 
 private:
     ~CRotationItem();
 
 private:
     CComPtr<IShellItem> m_spsi;
-    long  m_cRef;
+    long m_cRef;
+    HRESULT m_hrResult;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
 };
+
+// TODO: Consider modifying the below or making them customizable via the interface.  We will likely want to control
+// TODO: these from unit tests.
 
 // Maximum number of running worker threads
 // We should never exceed the number of logical processors
@@ -96,6 +103,7 @@ private:
     HRESULT _CreateWorkerThreads();
 
     static UINT s_GetLogicalProcessorCount();
+    static DWORD WINAPI s_rotationWorkerThread(__in void* pv);
 
     ~CRotationManager();
 
@@ -115,4 +123,6 @@ private:
     CComPtr<IProgressDialog> m_sppd;
     long  m_cRef;
     ULONG_PTR m_gdiplusToken;
+    HANDLE m_hCancelEvent;
+    HANDLE m_hStartEvent;
 };
