@@ -60,7 +60,7 @@ private:
 // Minimum amount of work to schedule to a worker thread
 #define MIN_ROTATION_WORK_SIZE 5
 
-class CRotationManager : public IUnknown
+class CRotationManager : public IRotationManager
 {
 public:
     CRotationManager();
@@ -70,7 +70,7 @@ public:
     {
         static const QITAB qit[] =
         {
-            QITABENT(CRotationManager, IUnknown),
+            QITABENT(CRotationManager, IRotationManager),
             { 0, 0 },
         };
         return QISearch(this, qit, riid, ppv);
@@ -91,11 +91,18 @@ public:
         return cRef;
     }
 
-    HRESULT PerformRotation();
+    IFACEMETHODIMP Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie);
+    IFACEMETHODIMP UnAdvise(__in DWORD dwCookie);
+    IFACEMETHODIMP Start();
+    IFACEMETHODIMP Cancel();
+    IFACEMETHODIMP AddItem(__in IRotationItem* pri);
+    IFACEMETHODIMP GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri);
+    IFACEMETHODIMP GetItemCount(__out UINT* puCount);
 
     static HRESULT s_CreateInstance(__in IDataObject* pdo, __deref_out CRotationManager** pprm);
 
 private:
+    HRESULT _PerformRotation();
     HRESULT _EnumerateDataObject();
     HRESULT _Init(__in IDataObject* pdo);
     HRESULT _Cleanup();
@@ -125,4 +132,6 @@ private:
     ULONG_PTR m_gdiplusToken;
     HANDLE m_hCancelEvent;
     HANDLE m_hStartEvent;
+    CComPtr<IRotationManagerEvents> m_sprme;
+    DWORD m_dwCookie;
 };

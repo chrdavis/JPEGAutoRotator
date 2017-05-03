@@ -227,6 +227,61 @@ CRotationManager::~CRotationManager()
     DllRelease();
 }
 
+IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)
+{
+    
+}
+
+IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
+{
+
+}
+
+IFACEMETHODIMP CRotationManager::Start()
+{
+    // Ensure any previous runs are cancelled
+    Cancel();
+
+    return _PerformRotation();
+}
+
+IFACEMETHODIMP CRotationManager::Cancel()
+{
+
+}
+
+IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
+{
+    HRESULT hr = (pri && m_spoc) ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
+    {
+        hr = m_spoc->AddObject(pri);
+    }
+    return hr;
+}
+
+IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri)
+{
+    *ppri = nullptr;
+    HRESULT hr = m_spoc ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
+    {
+        hr = m_spoc->GetAt(uIndex, IID_PPV_ARGS(ppri));
+    }
+    return hr;
+}
+
+IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
+{
+    *puCount = 0;
+    HRESULT hr = m_spoc ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
+    {
+        hr = m_spoc->GetCount(puCount);
+    }
+    return hr;
+}
+
 HRESULT CRotationManager::s_CreateInstance(__in IDataObject* pdo, __deref_out CRotationManager** pprm)
 {
     *pprm = nullptr;
@@ -245,7 +300,7 @@ HRESULT CRotationManager::s_CreateInstance(__in IDataObject* pdo, __deref_out CR
     return hr;
 }
 
-HRESULT CRotationManager::PerformRotation()
+HRESULT CRotationManager::_PerformRotation()
 {
     // Start progress dialog
     m_sppd->StartProgressDialog(HWND_DESKTOP, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
