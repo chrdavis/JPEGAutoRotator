@@ -14,7 +14,7 @@ public:
 interface __declspec(uuid("1FB14328-E681-4BC2-B947-00BAC0387A01")) IRotationManagerEvents : public IUnknown
 {
 public:
-    IFACEMETHOD(OnRotation)(__in IRotationItem* pri) = 0;
+    IFACEMETHOD(OnRotated)(__in UINT uIndex) = 0;
     IFACEMETHOD(OnProgress)(__in UINT uCompleted, __in UINT uTotal) = 0;
     IFACEMETHOD(OnCompleted)() = 0;
 };
@@ -29,4 +29,11 @@ public:
     IFACEMETHOD(AddItem)(__in IRotationItem* pri) = 0;
     IFACEMETHOD(GetItem)(__in UINT uIndex, __deref_out IRotationItem** ppri) = 0;
     IFACEMETHOD(GetItemCount)(__out UINT* puCount) = 0;
+};
+
+interface __declspec(uuid("39EEEC7B-81B4-4719-90E1-37D70059724C")) IRotationUI : public IUnknown
+{
+public:
+    IFACEMETHOD(Start)() = 0;
+    IFACEMETHOD(Close)() = 0;
 };

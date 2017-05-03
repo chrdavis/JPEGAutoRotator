@@ -8,3 +8,6 @@ JPEGAutoRotatorLib/x64/Debug/JPEGAutoRotatorLib.Build.CppClean.log
 *.pdb
 *.opendb
 JPEGAutoRotatorExt.VC.db
+/Debug
+/JPEGAutoRotatorExt/Debug
+/JPEGAutoRotatorLib/Debug

@@ -8,6 +8,8 @@
 #include <unknwn.h>
 #include <shlwapi.h>
 #include <atlbase.h>
+#include <Shobjidl.h>
+#include <Shlobj.h>
 
 void DllAddRef();
 void DllRelease();

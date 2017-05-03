@@ -31,7 +31,7 @@ const RotateFlipType rotateFlipTable[] =
 // Custom messages for rotation manager worker thread
 enum
 {
-    ROTM_ROTI_UPDATE = (WM_APP + 1),   // Single rotation item finished
+    ROTM_ROTI_ROTATED = (WM_APP + 1),  // Single rotation item finished
     ROTM_ROTI_COMPLETE,                // Worker thread completed
     ROTM_ENDTHREAD                     // End worker threads and exit manager
 };
@@ -212,8 +212,7 @@ IFACEMETHODIMP CRotationItem::Rotate()
 
 CRotationManager::CRotationManager() :
     m_cRef(1),
-    m_spdo(nullptr),
-    m_sppd(nullptr),
+    m_dwCookie(0),
     m_uWorkerThreadCount(0),
     m_hStartEvent(nullptr),
     m_hCancelEvent(nullptr)
@@ -229,12 +228,26 @@ CRotationManager::~CRotationManager()
 
 IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)
 {
-    
+    HRESULT hr = prme ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
+    {
+        // TODO: allow > 1 IRotationManagerEvents
+        m_sprme = prme;
+        m_dwCookie++;
+        *pdwCookie = m_dwCookie;
+    }
+
+    return hr;
 }
 
 IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
 {
+    if (dwCookie == m_dwCookie)
+    {
+        m_sprme = nullptr;
+    }
 
+    return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::Start()
@@ -247,7 +260,8 @@ IFACEMETHODIMP CRotationManager::Start()
 
 IFACEMETHODIMP CRotationManager::Cancel()
 {
-
+    SetEvent(m_hCancelEvent);
+    return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
@@ -282,19 +296,14 @@ IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
     return hr;
 }
 
-HRESULT CRotationManager::s_CreateInstance(__in IDataObject* pdo, __deref_out CRotationManager** pprm)
+HRESULT CRotationManager::s_CreateInstance(__deref_out IRotationManager** pprm)
 {
     *pprm = nullptr;
     CRotationManager *prm = new CRotationManager();
     HRESULT hr = prm ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
-        hr = prm->_Init(pdo);
-        if (SUCCEEDED(hr))
-        {
-            *pprm = prm;
-            (*pprm)->AddRef();
-        }
+        hr = prm->QueryInterface(IID_PPV_ARGS(pprm));
         prm->Release();
     }
     return hr;
@@ -302,53 +311,61 @@ HRESULT CRotationManager::s_CreateInstance(__in IDataObject* pdo, __deref_out CR
 
 HRESULT CRotationManager::_PerformRotation()
 {
-    // Start progress dialog
-    m_sppd->StartProgressDialog(HWND_DESKTOP, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
-
-    // Enumerate items
-    HRESULT hr = _EnumerateDataObject();
+    // Create worker threads which will message us progress and
+    // completion.
+    HRESULT hr = _CreateWorkerThreads();
     if (SUCCEEDED(hr))
     {
-        // Create worker threads which will message us progress and
-        // completion.
-        hr = _CreateWorkerThreads();
-        if (SUCCEEDED(hr))
+        UINT uCompleted = 0;
+        UINT uTotalItems = 0;
+        m_spoc->GetCount(&uTotalItems);
+        
+        // Signal the worker thread that they can start working. We needed to wait until we
+        // were ready to process thread messages.
+        SetEvent(m_hStartEvent);
+        bool fDone = false;
+        while (!fDone)
         {
-            // Signal the worker thread that they can start working. We needed to wait until we
-            // were ready to process thread messages.
-            SetEvent(m_hStartEvent);
-            bool fDone = false;
-            while (!fDone)
+            // Check if all running threads have exited
+            if (WaitForMultipleObjects(m_uWorkerThreadCount, m_workerThreadHandles, TRUE, 10) == WAIT_OBJECT_0)
             {
-                // TODO: check running threads
+                fDone = true;
+            }
 
-                // TODO: check cancel state
-
-                MSG msg;
-                while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            MSG msg;
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            {
+                // If we got the "operation complete" message
+                if (msg.message == ROTM_ENDTHREAD)
                 {
-                    // If we got the "operation complete" message
-                    if (msg.message == ROTM_ENDTHREAD)
+                    // Break out of the loop and end the thread
+                    fDone = true;
+                }
+                else if (msg.message == ROTM_ROTI_ROTATED)
+                {
+                    uCompleted++;
+                    if (m_sprme)
                     {
-                        // Break out of the loop and end the thread
-                        break;
-                    }
-                    else if (msg.message == ROTM_ROTI_UPDATE)
-                    {
-                        _UpdateProgressForWorkerThread((UINT)msg.wParam, (UINT)msg.lParam);
-                    }
-                    else if (msg.message == ROTM_ROTI_COMPLETE)
-                    {
-                        // Worker thread completed
-                        // Break out of the loop and end the thread
-                        break;
-                    }
-                    else
-                    {
-                        TranslateMessage(&msg);
-                        DispatchMessage(&msg);
+                        m_sprme->OnRotated(msg.lParam);
+                        m_sprme->OnProgress(uCompleted, uTotalItems);
                     }
                 }
+                else if (msg.message == ROTM_ROTI_COMPLETE)
+                {
+                    // Worker thread completed
+                    // Break out of the loop and end the thread
+                    fDone = true;
+                }
+                else
+                {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                }
+            }
+
+            if (m_sprme)
+            {
+                m_sprme->OnCompleted();
             }
         }
     }
@@ -409,6 +426,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 prwtd->poc = m_spoc;
                 prwtd->poc->AddRef();
                 m_workerThreadInfo[u].hWorker = CreateThread(nullptr, 0, s_rotationWorkerThread, prwtd, 0, &m_workerThreadInfo[u].dwThreadId);
+                m_workerThreadHandles[u] = m_workerThreadInfo[u].hWorker;
                 hr = (m_workerThreadInfo[u].hWorker) ? S_OK : E_FAIL;
                 if (SUCCEEDED(hr))
                 {
@@ -456,11 +474,14 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
 
                         spri->SetResult(hrWork);
                     }
+
+                    // Send the manager thread the rotation item completed message
+                    PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ROTATED, GetCurrentThreadId(), u);
                 }
             }
 
-            // Sent the manager thread the completion message
-            PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_COMPLETE, 0, 0);
+            // Send the manager thread the completion message
+            PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_COMPLETE, GetCurrentThreadId(), 0);
         }
         CoUninitialize();
     }
@@ -468,20 +489,7 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
     return 0;
 }
 
-void CRotationManager::_UpdateProgressForWorkerThread(UINT uThreadId, UINT uCompleted)
-{
-    if (m_sppd && m_spoc)
-    {
-        // Get total number of rotation items
-        UINT uTotal = 0;
-        m_spoc->GetCount(&uTotal);
-
-        // Get count
-        m_sppd->SetProgress(uCompleted, uTotal);
-    }
-}
-
-HRESULT CRotationManager::_Init(__in IDataObject* pdo)
+HRESULT CRotationManager::_Init()
 {
     // Initialize GDIPlus now. All of our GDIPlus usage is in CRenameItem.
     GdiplusStartupInput gdiplusStartupInput;
@@ -489,27 +497,21 @@ HRESULT CRotationManager::_Init(__in IDataObject* pdo)
 
     ZeroMemory(m_workerThreadInfo, sizeof(m_workerThreadInfo) * ARRAYSIZE(m_workerThreadInfo));
 
-    // Cache the data object
-    m_spdo = pdo;
-
     // Event used to signal worker thread that it can start
     m_hStartEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
     // Event used to signal worker thread in the event of a cancel
     m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    HRESULT hr = m_hCancelEvent ? S_OK : E_FAIL;
-    if (SUCCEEDED(hr))
+    
+    HRESULT hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
+    if (FAILED(hr))
     {
-        // Create the progress dialog we will show during the operation
-        hr = CoCreateInstance(CLSID_ProgressDialog,
-            nullptr,
-            CLSCTX_INPROC_SERVER,
-            IID_PPV_ARGS(&m_sppd));
+        _Cleanup();
     }
 
     return hr;
 }
 
-HRESULT CRotationManager::_Cleanup()
+void CRotationManager::_Cleanup()
 {
     // Done with GDIPlus so shutdown now
     GdiplusShutdown(m_gdiplusToken);
@@ -520,64 +522,13 @@ HRESULT CRotationManager::_Cleanup()
         m_workerThreadInfo[u].hWorker = nullptr;
     }
 
-    m_spdo = nullptr;
-    m_sppd = nullptr;
+    m_sprme = nullptr;
 
     CloseHandle(m_hStartEvent);
     m_hStartEvent = nullptr;
 
     CloseHandle(m_hCancelEvent);
     m_hCancelEvent = nullptr;
-
-    return S_OK;
-}
-
-// Iterate through the data object and add items to the IObjectCollection
-HRESULT CRotationManager::_EnumerateDataObject()
-{
-    // Clear any existing collection
-    m_spoc = nullptr;
-    HRESULT hr = CoCreateInstance(CLSID_EnumerableObjectCollection,
-        nullptr,
-        CLSCTX_INPROC_SERVER,
-        IID_PPV_ARGS(&m_spoc));
-    if (SUCCEEDED(hr))
-    {
-        CComPtr<IShellItemArray> spsia;
-        hr = SHCreateShellItemArrayFromDataObject(m_spdo, IID_PPV_ARGS(&spsia));
-        if (SUCCEEDED(hr))
-        {
-            CComPtr<IEnumShellItems> spesi;
-            hr = spsia->EnumItems(&spesi);
-            if (SUCCEEDED(hr))
-            {
-                ULONG celtFetched = 0;
-                IShellItem *psi = nullptr;
-                while ((S_OK == spesi->Next(1, &psi, &celtFetched)) && (SUCCEEDED(hr)))
-                {
-                    SFGAOF att = 0;
-                    if (SUCCEEDED(psi->GetAttributes(SFGAO_FOLDER, &att))) // pItem is a IShellItem*
-                    {
-                        // TODO: should we do this here or later?
-                        // Don't bother including folders
-                        if (!(att & SFGAO_FOLDER))
-                        {
-                            IRotationItem* priNew;
-                            hr = CRotationItem::s_CreateInstance(psi, &priNew);
-                            if (SUCCEEDED(hr))
-                            {
-                                hr = m_spoc->AddObject(priNew);
-                                priNew->Release();
-                            }
-                        }
-                    }
-                    psi->Release();
-                }
-            }
-        }
-    }
-
-    return hr;
 }
 
 UINT CRotationManager::s_GetLogicalProcessorCount()

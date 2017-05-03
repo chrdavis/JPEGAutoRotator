@@ -99,20 +99,18 @@ public:
     IFACEMETHODIMP GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri);
     IFACEMETHODIMP GetItemCount(__out UINT* puCount);
 
-    static HRESULT s_CreateInstance(__in IDataObject* pdo, __deref_out CRotationManager** pprm);
+    static HRESULT s_CreateInstance(__deref_out IRotationManager** pprm);
 
 private:
+    ~CRotationManager();
+
+    HRESULT _Init();
+    void _Cleanup();
     HRESULT _PerformRotation();
-    HRESULT _EnumerateDataObject();
-    HRESULT _Init(__in IDataObject* pdo);
-    HRESULT _Cleanup();
-    void _UpdateProgressForWorkerThread(UINT uThreadId, UINT uCompleted);
     HRESULT _CreateWorkerThreads();
 
     static UINT s_GetLogicalProcessorCount();
     static DWORD WINAPI s_rotationWorkerThread(__in void* pv);
-
-    ~CRotationManager();
 
 private:
     struct ROTATION_WORKER_THREAD_INFO
@@ -124,10 +122,9 @@ private:
     };
 
     ROTATION_WORKER_THREAD_INFO m_workerThreadInfo[MAX_ROTATION_WORKER_THREADS];
+    HANDLE m_workerThreadHandles[MAX_ROTATION_WORKER_THREADS];
     UINT m_uWorkerThreadCount;
-    CComPtr<IDataObject> m_spdo;
     CComPtr<IObjectCollection> m_spoc;
-    CComPtr<IProgressDialog> m_sppd;
     long  m_cRef;
     ULONG_PTR m_gdiplusToken;
     HANDLE m_hCancelEvent;
