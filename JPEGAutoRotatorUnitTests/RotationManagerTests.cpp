@@ -36,7 +36,7 @@ namespace JPEGAutoRotatorUnitTests
         {
             /*ExpandEnvironmentStrings(g_pszTestOutputFolder, g_szPathOut, ARRAYSIZE(g_szPathOut));
             // Create the test directory
-            CreateDirectory(g_szPathOut, nullptr);
+            CreateDirectory(g_szPathOut, nullptr);*/
         }
 
         TEST_CLASS_CLEANUP(Cleanup)
