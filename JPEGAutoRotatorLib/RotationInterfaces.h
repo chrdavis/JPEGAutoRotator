@@ -4,8 +4,9 @@
 interface __declspec(uuid("FFB76FF1-DE4B-459A-A6C7-025392CFDA53")) IRotationItem : public IUnknown
 {
 public:
-    IFACEMETHOD(GetItem)(__deref_out IShellItem** ppsi) = 0;
-    IFACEMETHOD(SetItem)(__in IShellItem* psi) = 0;
+
+    IFACEMETHOD(GetPath)(__deref_out PWSTR* ppszPath) = 0;
+    IFACEMETHOD(SetPath)(__in PCWSTR pszPath) = 0;
     IFACEMETHOD(GetResult)(__out HRESULT* phrResult) = 0;
     IFACEMETHOD(SetResult)(__in HRESULT hrResult) = 0;
     IFACEMETHOD(Rotate)() = 0;

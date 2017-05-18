@@ -33,19 +33,19 @@ public:
         return cRef;
     }
 
-    IFACEMETHODIMP GetItem(__deref_out IShellItem** ppsi);
-    IFACEMETHODIMP SetItem(__in IShellItem* psi);
+    IFACEMETHODIMP GetPath(__deref_out PWSTR* ppszPath);
+    IFACEMETHODIMP SetPath(__in PCWSTR pszPath);
     IFACEMETHODIMP GetResult(__out HRESULT* phrResult);
     IFACEMETHODIMP SetResult(__in HRESULT hrResult);
     IFACEMETHODIMP Rotate();
 
-    static HRESULT s_CreateInstance(__in IShellItem* psi, __deref_out IRotationItem** ppri);
+    static HRESULT s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotationItem** ppri);
 
 private:
     ~CRotationItem();
 
 private:
-    CComPtr<IShellItem> m_spsi;
+    PWSTR m_pszPath;
     long m_cRef;
     HRESULT m_hrResult;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
 };

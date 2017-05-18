@@ -86,23 +86,24 @@ struct RotateWorkerThreadData
 
 CRotationItem::CRotationItem() :
     m_cRef(1),
-    m_spsi(nullptr),
+    m_pszPath(nullptr),
     m_hrResult(S_FALSE)
 {
 }
 
 CRotationItem::~CRotationItem()
 {
+    CoTaskMemFree(m_pszPath);
 }
 
-HRESULT CRotationItem::s_CreateInstance(__in IShellItem* psi, __deref_out IRotationItem** ppri)
+HRESULT CRotationItem::s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotationItem** ppri)
 {
     *ppri = nullptr;
     CRotationItem* pri = new CRotationItem();
     HRESULT hr = pri ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
-        hr = pri->SetItem(psi);
+        hr = pri->SetPath(pszPath);
         if (SUCCEEDED(hr))
         {
             hr = pri->QueryInterface(IID_PPV_ARGS(ppri));
@@ -112,24 +113,24 @@ HRESULT CRotationItem::s_CreateInstance(__in IShellItem* psi, __deref_out IRotat
     return hr;
 }
 
-IFACEMETHODIMP CRotationItem::GetItem(__deref_out IShellItem** ppsi)
+IFACEMETHODIMP CRotationItem::GetPath(__deref_out PWSTR* ppszPath)
 {
-    *ppsi = nullptr;
-    HRESULT hr = E_FAIL;
-    if (m_spsi)
+    *ppszPath = nullptr;
+    HRESULT hr = m_pszPath ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
     {
-        *ppsi = m_spsi;
-        (*ppsi)->AddRef();
+        hr = SHStrDup(m_pszPath, ppszPath);
     }
     return hr;
 }
 
-IFACEMETHODIMP CRotationItem::SetItem(__in IShellItem* psi)
+IFACEMETHODIMP CRotationItem::SetPath(__in PCWSTR pszPath)
 {
-    HRESULT hr = psi ? S_OK : E_INVALIDARG;
+    HRESULT hr = pszPath ? S_OK : E_INVALIDARG;
     if (SUCCEEDED(hr))
     {
-        m_spsi = psi;
+        CoTaskMemFree(m_pszPath);
+        hr = SHStrDup(pszPath, &m_pszPath);
     }
     return hr;
 }
@@ -148,62 +149,53 @@ IFACEMETHODIMP CRotationItem::SetResult(__in HRESULT hrResult)
 
 IFACEMETHODIMP CRotationItem::Rotate()
 {
-    HRESULT hr = m_spsi ? S_OK : E_FAIL;
+    HRESULT hr = m_pszPath ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
     {
-        // Create a bind content to open the stream for read write
-        CComPtr<IBindCtx> spbc;
-        hr = CreateBindCtx(0, &spbc);
+        CComPtr<IStream> spstrm;
+        hr = SHCreateStreamOnFile(m_pszPath, STGM_READWRITE, &spstrm);
         if (SUCCEEDED(hr))
         {
-            BIND_OPTS bo = { sizeof(bo), 0, STGM_READWRITE, 0 };
-            hr = spbc->SetBindOptions(&bo);
+            // Create a GDIPlus Image from the stream
+            Image* pImage = Image::FromStream(spstrm);
+            hr = (pImage && pImage->GetLastStatus() == Ok) ? S_OK : E_FAIL;
             if (SUCCEEDED(hr))
             {
-                CComPtr<IStream> spstrm;
-                hr = m_spsi->BindToHandler(spbc, BHID_Stream, IID_PPV_ARGS(&spstrm));
-                if (SUCCEEDED(hr))
+                GUID guidGdiplusFormat = { 0 };
+                if (pImage->GetRawFormat(&guidGdiplusFormat) == Ok &&
+                    (guidGdiplusFormat == ImageFormatJPEG))
                 {
-                    // Create a GDIPlus Image from the stream
-                    Image* pImage = Image::FromStream(spstrm);
-                    hr = (pImage && pImage->GetLastStatus() == Ok) ? S_OK : E_FAIL;
-                    if (SUCCEEDED(hr))
+                    const int LOCAL_BUFFER_SIZE = 32;
+                    BYTE buffer[LOCAL_BUFFER_SIZE];
+                    PropertyItem* pItem = (PropertyItem*)buffer;
+                    UINT uSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
+                    if (pImage->GetLastStatus() ==Ok)
                     {
-                        GUID guidGdiplusFormat = { 0 };
-                        if (pImage->GetRawFormat(&guidGdiplusFormat) == Ok &&
-                            (guidGdiplusFormat == ImageFormatJPEG))
+                        if (uSize < LOCAL_BUFFER_SIZE &&
+                            pImage->GetPropertyItem(PropertyTagOrientation, uSize, pItem) == Gdiplus::Ok &&
+                            pItem->type == PropertyTagTypeShort)
                         {
-                            const int LOCAL_BUFFER_SIZE = 32;
-                            BYTE buffer[LOCAL_BUFFER_SIZE];
-                            PropertyItem* pItem = (PropertyItem*)buffer;
-                            UINT uSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
-                            if (pImage->GetLastStatus() ==Ok)
+                            USHORT uOrientation = *((USHORT*)pItem->value);
+                            // Ensure valid orientation range.  If not in range do nothing and return success.
+                            if (uOrientation <= 8 && uOrientation >= 2)
                             {
-                                if (uSize < LOCAL_BUFFER_SIZE &&
-                                    pImage->GetPropertyItem(PropertyTagOrientation, uSize, pItem) == Gdiplus::Ok &&
-                                    pItem->type == PropertyTagTypeShort)
+                                hr = (pImage->RotateFlip(rotateFlipTable[uOrientation]) == Ok) ? S_OK : E_FAIL;
+                                if (SUCCEEDED(hr))
                                 {
-                                    USHORT uOrientation = *((USHORT*)pItem->value);
-                                    // Ensure valid orientation range.  If not in range do nothing and return success.
-                                    if (uOrientation <= 8 && uOrientation >= 2)
-                                    {
-                                        hr = (pImage->RotateFlip(rotateFlipTable[uOrientation]) == Ok) ? S_OK : E_FAIL;
-                                        if (SUCCEEDED(hr))
-                                        {
-                                            // Save back to original location
-                                            IStream_Reset(spstrm);
-                                            CLSID jpgClsid;
-                                            GetEncoderClsid(L"image/jpeg", &jpgClsid);
-                                            hr = (pImage->Save(spstrm, &jpgClsid, nullptr) == Ok) ? S_OK : E_FAIL;
-                                        }
-                                    }
+                                    // Remove the orientation tag
+                                    pImage->RemovePropertyItem(PropertyTagOrientation);
+                                    // Save back to original location
+                                    IStream_Reset(spstrm);
+                                    CLSID jpgClsid;
+                                    GetEncoderClsid(L"image/jpeg", &jpgClsid);
+                                    hr = (pImage->Save(spstrm, &jpgClsid, nullptr) == Ok) ? S_OK : E_FAIL;
                                 }
                             }
                         }
-
-                        delete pImage;
                     }
                 }
+
+                delete pImage;
             }
         }
     }
@@ -255,11 +247,13 @@ IFACEMETHODIMP CRotationManager::Start()
     // Ensure any previous runs are cancelled
     Cancel();
 
+    ResetEvent(m_hStartEvent);
     return _PerformRotation();
 }
 
 IFACEMETHODIMP CRotationManager::Cancel()
 {
+    SetEvent(m_hStartEvent);
     SetEvent(m_hCancelEvent);
     return S_OK;
 }
@@ -303,7 +297,11 @@ HRESULT CRotationManager::s_CreateInstance(__deref_out IRotationManager** pprm)
     HRESULT hr = prm ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
-        hr = prm->QueryInterface(IID_PPV_ARGS(pprm));
+        hr = prm->_Init();
+        if (SUCCEEDED(hr))
+        {
+            hr = prm->QueryInterface(IID_PPV_ARGS(pprm));
+        }
         prm->Release();
     }
     return hr;
@@ -319,7 +317,8 @@ HRESULT CRotationManager::_PerformRotation()
         UINT uCompleted = 0;
         UINT uTotalItems = 0;
         m_spoc->GetCount(&uTotalItems);
-        
+
+        ResetEvent(m_hCancelEvent);
         // Signal the worker thread that they can start working. We needed to wait until we
         // were ready to process thread messages.
         SetEvent(m_hStartEvent);
@@ -440,9 +439,14 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 }
             }
         }
+
+        if (FAILED(hr))
+        {
+            Cancel();
+        }
     }
 
-    return S_OK;
+    return hr;
 }
 
 DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
@@ -482,6 +486,8 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
 
             // Send the manager thread the completion message
             PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_COMPLETE, GetCurrentThreadId(), 0);
+
+            delete prwtd;
         }
         CoUninitialize();
     }
@@ -495,17 +501,24 @@ HRESULT CRotationManager::_Init()
     GdiplusStartupInput gdiplusStartupInput;
     GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, nullptr);
 
-    ZeroMemory(m_workerThreadInfo, sizeof(m_workerThreadInfo) * ARRAYSIZE(m_workerThreadInfo));
+    ZeroMemory(m_workerThreadInfo, sizeof(m_workerThreadInfo));
 
-    // Event used to signal worker thread that it can start
-    m_hStartEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    // Event used to signal worker thread in the event of a cancel
-    m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    
-    HRESULT hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
-    if (FAILED(hr))
+    HRESULT hr = CoCreateInstance(CLSID_EnumerableObjectCollection,
+        nullptr,
+        CLSCTX_INPROC_SERVER,
+        IID_PPV_ARGS(&m_spoc));
+    if (SUCCEEDED(hr))
     {
-        _Cleanup();
+        // Event used to signal worker thread that it can start
+        m_hStartEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+        // Event used to signal worker thread in the event of a cancel
+        m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    
+        hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
+        if (FAILED(hr))
+        {
+            _Cleanup();
+        }
     }
 
     return hr;
@@ -533,5 +546,7 @@ void CRotationManager::_Cleanup()
 
 UINT CRotationManager::s_GetLogicalProcessorCount()
 {
-    SYSTEM_INFO sysinfo;    GetSystemInfo(&sysinfo);    return sysinfo.dwNumberOfProcessors;
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    return sysinfo.dwNumberOfProcessors;
 }

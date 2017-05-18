@@ -11,3 +11,14 @@ JPEGAutoRotatorExt.VC.db
 /Debug
 /JPEGAutoRotatorExt/Debug
 /JPEGAutoRotatorLib/Debug
+*.obj
+JPEGAutoRotatorExt/x64/Debug/JPEGAutoRotatorExt.log
+*.pch
+*.res
+*.log
+x64/Debug/JPEGAutoRotatorUnitTests.dll
+*.exp
+x64/Debug/JPEGAutoRotatorUnitTests.ilk
+*.lib
+x64/Debug/JPEGAutoRotatorExt.ilk
+*.dll

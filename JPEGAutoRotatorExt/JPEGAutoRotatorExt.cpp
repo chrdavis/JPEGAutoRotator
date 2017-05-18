@@ -250,12 +250,20 @@ HRESULT CRotationUI::_EnumerateDataObject()
                     // Don't bother including folders
                     if (!(att & SFGAO_FOLDER))
                     {
-                        IRotationItem* priNew;
-                        hr = CRotationItem::s_CreateInstance(psi, &priNew);
+                        // Get the path
+                        PWSTR pszPath = nullptr;
+                        hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszPath);
                         if (SUCCEEDED(hr))
                         {
-                            hr = m_sprm->AddItem(priNew);
-                            priNew->Release();
+                            IRotationItem* priNew;
+                            hr = CRotationItem::s_CreateInstance(pszPath, &priNew);
+                            if (SUCCEEDED(hr))
+                            {
+                                hr = m_sprm->AddItem(priNew);
+                                priNew->Release();
+                            }
+
+                            CoTaskMemFree(pszPath);
                         }
                     }
                 }
