@@ -169,7 +169,7 @@ IFACEMETHODIMP CRotationItem::Rotate()
                     BYTE buffer[LOCAL_BUFFER_SIZE];
                     PropertyItem* pItem = (PropertyItem*)buffer;
                     UINT uSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
-                    if (pImage->GetLastStatus() ==Ok)
+                    if (pImage->GetLastStatus() == Ok)
                     {
                         if (uSize < LOCAL_BUFFER_SIZE &&
                             pImage->GetPropertyItem(PropertyTagOrientation, uSize, pItem) == Gdiplus::Ok &&

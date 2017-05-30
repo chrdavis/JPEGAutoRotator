@@ -16,6 +16,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JPEGAutoRotatorUnitTests", 
 		{B4EFD9D0-3D67-442F-9EEA-45E7382DCF00} = {B4EFD9D0-3D67-442F-9EEA-45E7382DCF00}
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorExt32", "JPEGAutoRotatorExt32\JPEGAutoRotatorExt32.vdproj", "{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorExt64", "JPEGAutoRotatorExt64\JPEGAutoRotatorExt64.vdproj", "{37353A6A-86B1-416E-95DF-846D62EE1144}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -48,6 +52,14 @@ Global
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x64.Build.0 = Release|x64
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x86.ActiveCfg = Release|Win32
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x86.Build.0 = Release|Win32
+		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Debug|x64.ActiveCfg = Debug
+		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Debug|x86.ActiveCfg = Debug
+		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Release|x64.ActiveCfg = Release
+		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Release|x86.ActiveCfg = Release
+		{37353A6A-86B1-416E-95DF-846D62EE1144}.Debug|x64.ActiveCfg = Debug
+		{37353A6A-86B1-416E-95DF-846D62EE1144}.Debug|x86.ActiveCfg = Debug
+		{37353A6A-86B1-416E-95DF-846D62EE1144}.Release|x64.ActiveCfg = Release
+		{37353A6A-86B1-416E-95DF-846D62EE1144}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
