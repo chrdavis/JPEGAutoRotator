@@ -22,3 +22,6 @@ x64/Debug/JPEGAutoRotatorUnitTests.ilk
 *.lib
 x64/Debug/JPEGAutoRotatorExt.ilk
 *.dll
+*.iobj
+Release/JPEGAutoRotatorUnitTests.ipdb
+*.ipdb

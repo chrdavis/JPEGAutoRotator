@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JPEGAutoRotatorExt", "JPEGAutoRotatorExt\JPEGAutoRotatorExt.vcxproj", "{22505C25-A992-48A5-A25C-EF3A4591A697}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -16,9 +16,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JPEGAutoRotatorUnitTests", 
 		{B4EFD9D0-3D67-442F-9EEA-45E7382DCF00} = {B4EFD9D0-3D67-442F-9EEA-45E7382DCF00}
 	EndProjectSection
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorExt32", "JPEGAutoRotatorExt32\JPEGAutoRotatorExt32.vdproj", "{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorInstaller32", "JPEGAutoRotatorInstaller32\JPEGAutoRotatorInstaller32.vdproj", "{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorExt64", "JPEGAutoRotatorExt64\JPEGAutoRotatorExt64.vdproj", "{37353A6A-86B1-416E-95DF-846D62EE1144}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorInstaller64", "JPEGAutoRotatorInstaller64\JPEGAutoRotatorInstaller64.vdproj", "{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,14 +52,14 @@ Global
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x64.Build.0 = Release|x64
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x86.ActiveCfg = Release|Win32
 		{2716883C-75FE-4B23-9963-0BED99017C07}.Release|x86.Build.0 = Release|Win32
-		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Debug|x64.ActiveCfg = Debug
-		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Debug|x86.ActiveCfg = Debug
-		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Release|x64.ActiveCfg = Release
-		{A1D9BF33-478C-4B4E-B829-61A41EC96DDB}.Release|x86.ActiveCfg = Release
-		{37353A6A-86B1-416E-95DF-846D62EE1144}.Debug|x64.ActiveCfg = Debug
-		{37353A6A-86B1-416E-95DF-846D62EE1144}.Debug|x86.ActiveCfg = Debug
-		{37353A6A-86B1-416E-95DF-846D62EE1144}.Release|x64.ActiveCfg = Release
-		{37353A6A-86B1-416E-95DF-846D62EE1144}.Release|x86.ActiveCfg = Release
+		{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}.Debug|x64.ActiveCfg = Debug
+		{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}.Debug|x86.ActiveCfg = Debug
+		{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}.Release|x64.ActiveCfg = Release
+		{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}.Release|x86.ActiveCfg = Release
+		{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}.Debug|x64.ActiveCfg = Debug
+		{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}.Debug|x86.ActiveCfg = Debug
+		{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}.Release|x64.ActiveCfg = Release
+		{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
