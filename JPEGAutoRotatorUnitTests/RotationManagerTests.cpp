@@ -47,7 +47,6 @@ namespace JPEGAutoRotatorUnitTests
             fileStruct.wFunc = FO_DELETE;
             fileStruct.fFlags = FOF_SILENT | FOF_NOERRORUI | FOF_NO_UI;
             SHFileOperation(&fileStruct);*/
-
         }
 
         TEST_METHOD(TestMethod1)

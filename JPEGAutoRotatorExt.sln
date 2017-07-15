@@ -17,8 +17,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JPEGAutoRotatorUnitTests", 
 	EndProjectSection
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorInstaller32", "JPEGAutoRotatorInstaller32\JPEGAutoRotatorInstaller32.vdproj", "{2DE7C0B8-8F03-49D1-8188-092ACC6D1F96}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22505C25-A992-48A5-A25C-EF3A4591A697} = {22505C25-A992-48A5-A25C-EF3A4591A697}
+		{B4EFD9D0-3D67-442F-9EEA-45E7382DCF00} = {B4EFD9D0-3D67-442F-9EEA-45E7382DCF00}
+	EndProjectSection
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorInstaller64", "JPEGAutoRotatorInstaller64\JPEGAutoRotatorInstaller64.vdproj", "{9C81AC9E-AD5B-4D1A-BBB0-140ED34B51A8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{22505C25-A992-48A5-A25C-EF3A4591A697} = {22505C25-A992-48A5-A25C-EF3A4591A697}
+		{B4EFD9D0-3D67-442F-9EEA-45E7382DCF00} = {B4EFD9D0-3D67-442F-9EEA-45E7382DCF00}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -231,6 +231,7 @@ void CRotationUI::_Cleanup()
 // Iterate through the data object and add items to the rotation manager
 HRESULT CRotationUI::_EnumerateDataObject()
 {
+    // TODO: add namespace walker to walk folders and subfolders
     CComPtr<IShellItemArray> spsia;
     HRESULT hr = SHCreateShellItemArrayFromDataObject(m_spdo, IID_PPV_ARGS(&spsia));
     if (SUCCEEDED(hr))
@@ -240,7 +241,7 @@ HRESULT CRotationUI::_EnumerateDataObject()
         if (SUCCEEDED(hr))
         {
             ULONG celtFetched = 0;
-            IShellItem *psi = nullptr;
+            IShellItem* psi = nullptr;
             while ((S_OK == spesi->Next(1, &psi, &celtFetched)) && (SUCCEEDED(hr)))
             {
                 SFGAOF att = 0;
