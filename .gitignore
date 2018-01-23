@@ -27,3 +27,8 @@ Release/JPEGAutoRotatorUnitTests.ipdb
 *.ipdb
 *.msi
 JPEGAutoRotatorInstaller64/Release/setup.exe
+*.db
+.vs/JPEGAutoRotatorExt/v15/Solution.VC.db-shm
+*.db-wal
+.vs/JPEGAutoRotatorExt/v15/.suo
+*.ilk
