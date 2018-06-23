@@ -49,7 +49,7 @@ namespace JPEGAutoRotatorUnitTests
             SHFileOperation(&fileStruct);*/
         }
 
-        TEST_METHOD(TestMethod1)
+        TEST_METHOD(RotateAllConfigurationsTest)
         {
             CComPtr<IRotationManager> spRotationManager;
             Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
