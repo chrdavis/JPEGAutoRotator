@@ -32,3 +32,5 @@ JPEGAutoRotatorInstaller64/Release/setup.exe
 *.db-wal
 .vs/JPEGAutoRotatorExt/v15/.suo
 *.ilk
+UpgradeLog.htm
+JPEGAutoRotatorInstaller32/Release/setup.exe

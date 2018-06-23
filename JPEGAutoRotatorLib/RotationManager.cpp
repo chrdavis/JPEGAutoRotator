@@ -332,7 +332,7 @@ HRESULT CRotationManager::_PerformRotation()
             }
 
             MSG msg;
-            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
             {
                 // If we got the "operation complete" message
                 if (msg.message == ROTM_ENDTHREAD)
@@ -345,7 +345,7 @@ HRESULT CRotationManager::_PerformRotation()
                     uCompleted++;
                     if (m_sprme)
                     {
-                        m_sprme->OnRotated(msg.lParam);
+                        m_sprme->OnRotated(static_cast<UINT>(msg.lParam));
                         m_sprme->OnProgress(uCompleted, uTotalItems);
                     }
                 }
