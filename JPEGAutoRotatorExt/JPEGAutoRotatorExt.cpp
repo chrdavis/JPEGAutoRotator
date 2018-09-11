@@ -132,10 +132,14 @@ IFACEMETHODIMP CRotationUI::Start()
     // Start progress dialog
     m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
 
-    // Start operation.  Here we will block but we should get reentered in our event callback.
-    // That way we can update the progress dialog, check the cancel state and notify the 
-    // manager if we want to cancel.
-    HRESULT hr = m_sprm->Start();
+    HRESULT hr = _EnumerateDataObject();
+    if (SUCCEEDED(hr))
+    {
+        // Start operation.  Here we will block but we should get reentered in our event callback.
+        // That way we can update the progress dialog, check the cancel state and notify the 
+        // manager if we want to cancel.
+        hr = m_sprm->Start();
+    }
 
     m_sppd->StopProgressDialog();
 
@@ -240,36 +244,66 @@ HRESULT CRotationUI::_EnumerateDataObject()
         hr = spsia->EnumItems(&spesi);
         if (SUCCEEDED(hr))
         {
-            ULONG celtFetched = 0;
-            IShellItem* psi = nullptr;
-            while ((S_OK == spesi->Next(1, &psi, &celtFetched)) && (SUCCEEDED(hr)))
-            {
-                SFGAOF att = 0;
-                if (SUCCEEDED(psi->GetAttributes(SFGAO_FOLDER, &att)))
-                {
-                    // TODO: should we do this here or later?
-                    // Don't bother including folders
-                    if (!(att & SFGAO_FOLDER))
-                    {
-                        // Get the path
-                        PWSTR pszPath = nullptr;
-                        hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszPath);
-                        if (SUCCEEDED(hr))
-                        {
-                            IRotationItem* priNew;
-                            hr = CRotationItem::s_CreateInstance(pszPath, &priNew);
-                            if (SUCCEEDED(hr))
-                            {
-                                hr = m_sprm->AddItem(priNew);
-                                priNew->Release();
-                            }
+            hr = _ParseEnumItems(spesi, 0);
+        }
+    }
 
-                            CoTaskMemFree(pszPath);
-                        }
+    return hr;
+}
+
+#define MAX_ENUM_DEPTH (MAX_PATH / 2)
+HRESULT CRotationUI::_ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth)
+{
+    HRESULT hr = E_INVALIDARG;
+
+    // We shouldn't get this deep since we only enum the contents of
+    // regular folders but adding just in case
+    if (depth < MAX_ENUM_DEPTH)
+    {
+        hr = S_OK;
+
+        ULONG celtFetched = 0;
+        IShellItem* psi = nullptr;
+        while ((S_OK == pesi->Next(1, &psi, &celtFetched)) && (SUCCEEDED(hr)))
+        {
+            // Check if this is a file or folder
+            SFGAOF att = 0;
+            hr = psi->GetAttributes(SFGAO_FOLDER | SFGAO_FILESYSTEM | SFGAO_STREAM, &att);
+            if (SUCCEEDED(hr))
+            {
+                // We only care about filesystem folders.  In some cases, objects will return SFGAO_FOLDER
+                // with SFGAO_STREAM (such as zip folders).
+                if (att == (SFGAO_FOLDER | SFGAO_FILESYSTEM))
+                {
+                    // This is a file system folder
+                    // Bind to the IShellItem for the IEnumShellItems interface
+                    CComPtr<IEnumShellItems> spesiNext;
+                    hr = psi->BindToHandler(NULL, BHID_EnumItems, IID_PPV_ARGS(&spesiNext));
+                    if (SUCCEEDED(hr))
+                    {
+                        // Parse the folder contents recursively
+                        hr = _ParseEnumItems(spesiNext, depth + 1);
                     }
                 }
-                psi->Release();
+                else if (!(att & SFGAO_FOLDER))
+                {
+                    // Get the path
+                    PWSTR pszPath = nullptr;
+                    hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszPath);
+                    if (SUCCEEDED(hr))
+                    {
+                        CComPtr<IRotationItem> spriNew;
+                        hr = CRotationItem::s_CreateInstance(pszPath, &spriNew);
+                        if (SUCCEEDED(hr))
+                        {
+                            hr = m_sprm->AddItem(spriNew);
+                        }
+
+                        CoTaskMemFree(pszPath);
+                    }
+                }
             }
+            psi->Release();
         }
     }
 
