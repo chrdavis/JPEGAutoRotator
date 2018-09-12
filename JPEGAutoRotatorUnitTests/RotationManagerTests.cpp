@@ -9,6 +9,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace JPEGAutoRotatorUnitTests
 {
+    // TODO: add test files to the unit tests project
+    // https://msdn.microsoft.com/en-us/library/ms182475.aspx
     PCWSTR g_rgTestFiles[] =
     {
         SZ_ROOT_TEST_FOLDER L"Landscape_1.jpg",
@@ -48,7 +50,6 @@ namespace JPEGAutoRotatorUnitTests
             fileStruct.fFlags = FOF_SILENT | FOF_NOERRORUI | FOF_NO_UI;
             SHFileOperation(&fileStruct);*/
         }
-
         TEST_METHOD(RotateAllConfigurationsTest)
         {
             CComPtr<IRotationManager> spRotationManager;
