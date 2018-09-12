@@ -107,6 +107,12 @@
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(ProjectDir)Images\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Test JPEG Files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -122,6 +128,12 @@
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(ProjectDir)Images\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Test JPEG Files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -141,6 +153,12 @@
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(ProjectDir)Images\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Test JPEG Files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -160,6 +178,12 @@
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(ProjectDir)Images\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy Test JPEG Files</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -174,6 +198,33 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RotationManagerTests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Images\JPEGWithExifRotation\Landscape_1.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_2.jpg">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </Image>
+    <Image Include="Images\JPEGWithExifRotation\Landscape_3.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_4.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_5.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_6.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_7.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Landscape_8.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_1.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_2.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_3.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_4.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_5.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_6.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_7.jpg" />
+    <Image Include="Images\JPEGWithExifRotation\Portrait_8.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
