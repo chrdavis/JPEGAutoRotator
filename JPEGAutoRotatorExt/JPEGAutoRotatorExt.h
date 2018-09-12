@@ -9,7 +9,7 @@ public:
     CJPEGAutoRotatorMenu();
 
     // IUnknown
-    IFACEMETHODIMP QueryInterface(REFIID riid, __deref_out void** ppv)
+    IFACEMETHODIMP QueryInterface(__in REFIID riid, __deref_out void** ppv)
     {
         static const QITAB qit[] =
         {
@@ -56,64 +56,3 @@ private:
     CComPtr<IDataObject> m_spdo;
 };
 
-// Simple class that implements the rotation manager events interface and shows
-// the progress dialog.
-class CRotationUI :
-    public IRotationUI,
-    public IRotationManagerEvents
-{
-public:
-    CRotationUI();
-
-    // IUnknown
-    IFACEMETHODIMP QueryInterface(REFIID riid, __deref_out void** ppv)
-    {
-        static const QITAB qit[] =
-        {
-            QITABENT(CRotationUI, IRotationUI),
-            QITABENT(CRotationUI, IRotationManagerEvents),
-            { 0, 0 },
-        };
-        return QISearch(this, qit, riid, ppv);
-    }
-
-    IFACEMETHODIMP_(ULONG) AddRef()
-    {
-        return InterlockedIncrement(&m_cRef);
-    }
-
-    IFACEMETHODIMP_(ULONG) Release()
-    {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
-        {
-            delete this;
-        }
-        return cRef;
-    }
-
-    // IRotationUI
-    IFACEMETHODIMP Start();
-    IFACEMETHODIMP Close();
-
-    // IRotationManagerEvents
-    IFACEMETHODIMP OnRotated(__in UINT uIndex);
-    IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
-    IFACEMETHODIMP OnCompleted();
-
-    static HRESULT s_CreateInstance(__in IDataObject* pdo, __deref_out IRotationUI** pprui);
-
-private:
-    ~CRotationUI();
-    
-    HRESULT _Initialize(__in IDataObject* pdo);
-    void _Cleanup();
-    HRESULT _EnumerateDataObject();
-    HRESULT _ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth);
-
-    long m_cRef;
-    DWORD m_dwCookie;
-    CComPtr<IDataObject> m_spdo;
-    CComPtr<IRotationManager> m_sprm;
-    CComPtr<IProgressDialog> m_sppd;
-};
