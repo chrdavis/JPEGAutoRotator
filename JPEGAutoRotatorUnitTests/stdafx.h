@@ -1,16 +1,18 @@
-// stdafx.h : include file for standard system include files,
-// or project specific include files that are used frequently, but
-// are changed infrequently
-//
-
 #pragma once
+
+// Windows Header Files:
+#include <windows.h>
+#include <unknwn.h>
+#include <shlwapi.h>
+#include <atlbase.h>
+#include <Shobjidl.h>
+#include <Shlobj.h>
 
 #include "targetver.h"
 
-// Headers for CppUnitTest
 #include "CppUnitTest.h"
 
-// TODO: reference additional headers your program requires here
+bool GetCurrentFolderPath(_In_ UINT count, _Out_ PWSTR path);
 
 void DllAddRef()
 {
