@@ -19,28 +19,32 @@ bool GetCurrentFolderPath(_In_ UINT count, _Out_ PWSTR path)
     return ret;
 }
 
-bool CreateTestFolder(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPathLen, _Out_ PWSTR testFolderPath)
+bool GetTestFolderPath(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPathLen, _Out_ PWSTR testFolderPath)
 {
     bool ret = false;
     if (GetCurrentFolderPath(testFolderPathLen, testFolderPath))
     {
         if (SUCCEEDED(PathCchAppend(testFolderPath, testFolderPathLen, testFolderPathAppend)))
         {
-            if (PathFileExists(testFolderPath))
-            {
-                DeleteHelper(testFolderPath);
-            }
-
-            ret = CreateDirectory(testFolderPath, NULL);
+            ret = true;
         }
     }
 
     return ret;
 }
 
+bool CopyHelper(_In_ PCWSTR src, _In_ PCWSTR dest)
+{
+    SHFILEOPSTRUCT fileStruct = { 0 };
+    fileStruct.pFrom = src;
+    fileStruct.pTo = dest;
+    fileStruct.wFunc = FO_COPY;
+    fileStruct.fFlags = FOF_SILENT | FOF_NOERRORUI | FOF_NO_UI | FOF_NOCONFIRMMKDIR | FOF_NOCONFIRMATION;
+    return (SHFileOperation(&fileStruct) == 0);
+}
+
 bool DeleteHelper(_In_ PCWSTR path)
 {
-    // Delete test folder
     SHFILEOPSTRUCT fileStruct = { 0 };
     fileStruct.pFrom = path;
     fileStruct.wFunc = FO_DELETE;

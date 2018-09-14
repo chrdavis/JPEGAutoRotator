@@ -108,7 +108,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;Pathcch.lib;shlwapi.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(ProjectDir)TestFiles\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+      <Command>xcopy /qdickhery "$(ProjectDir)TestFiles"  "$(OutDir)TestFiles"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Test JPEG Files</Message>
@@ -129,7 +129,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;Pathcch.lib;shlwapi.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(ProjectDir)TestFiles\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+      <Command>xcopy /qdickhery "$(ProjectDir)TestFiles"  "$(OutDir)TestFiles"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Test JPEG Files</Message>
@@ -154,7 +154,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;Pathcch.lib;shlwapi.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(ProjectDir)TestFiles\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+      <Command>xcopy /qdickhery "$(ProjectDir)TestFiles"  "$(OutDir)TestFiles"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Test JPEG Files</Message>
@@ -179,7 +179,7 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;Pathcch.lib;shlwapi.lib;gdi32.lib;gdiplus.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;$(OutDir)JPEGAutoRotatorLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(ProjectDir)TestFiles\JPEGWithExifRotation\*"  "$(OutDir)"</Command>
+      <Command>xcopy /qdickhery "$(ProjectDir)TestFiles"  "$(OutDir)TestFiles"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copy Test JPEG Files</Message>

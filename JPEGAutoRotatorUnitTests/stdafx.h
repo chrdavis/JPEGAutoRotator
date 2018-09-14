@@ -12,8 +12,11 @@
 
 #include "CppUnitTest.h"
 
+// Unit test helper functions
 bool GetCurrentFolderPath(_In_ UINT count, _Out_ PWSTR path);
-bool CreateTestFolder(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPathLen, _Out_ PWSTR testFolderPath);
+bool GetTestFolderPath(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPathLen, _Out_ PWSTR testFolderPath);
+
+bool CopyHelper(_In_ PCWSTR src, _In_ PCWSTR dest);
 bool DeleteHelper(_In_ PCWSTR path);
 
 void DllAddRef()
