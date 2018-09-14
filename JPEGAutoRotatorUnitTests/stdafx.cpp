@@ -1,11 +1,4 @@
-// stdafx.cpp : source file that includes just the standard includes
-// JPEGAutoRotatorUnitTests.pch will be the pre-compiled header
-// stdafx.obj will contain the pre-compiled type information
-
 #include "stdafx.h"
-
-// TODO: reference any additional headers you need in STDAFX.H
-// and not in this file
 
 HINSTANCE g_hInstance;
 
@@ -24,4 +17,33 @@ bool GetCurrentFolderPath(_In_ UINT count, _Out_ PWSTR path)
         ret = true;
     }
     return ret;
+}
+
+bool CreateTestFolder(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPathLen, _Out_ PWSTR testFolderPath)
+{
+    bool ret = false;
+    if (GetCurrentFolderPath(testFolderPathLen, testFolderPath))
+    {
+        if (SUCCEEDED(PathCchAppend(testFolderPath, testFolderPathLen, testFolderPathAppend)))
+        {
+            if (PathFileExists(testFolderPath))
+            {
+                DeleteHelper(testFolderPath);
+            }
+
+            ret = CreateDirectory(testFolderPath, NULL);
+        }
+    }
+
+    return ret;
+}
+
+bool DeleteHelper(_In_ PCWSTR path)
+{
+    // Delete test folder
+    SHFILEOPSTRUCT fileStruct = { 0 };
+    fileStruct.pFrom = path;
+    fileStruct.wFunc = FO_DELETE;
+    fileStruct.fFlags = FOF_SILENT | FOF_NOERRORUI | FOF_NO_UI;
+    return (SHFileOperation(&fileStruct) == 0);
 }

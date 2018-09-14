@@ -62,7 +62,6 @@ namespace JPEGAutoRotatorUnitTests
             // Append test folder path
             Assert::IsTrue(PathCchAppend(testFolderPath, ARRAYSIZE(testFolderPath), JPEGWITHEXIFROTATION_UNITTEST_FOLDER) == S_OK);
             // Copy test files
-
         }
 
         TEST_METHOD_CLEANUP(TestCleanup)
@@ -76,11 +75,7 @@ namespace JPEGAutoRotatorUnitTests
             Assert::IsTrue(PathCchAppend(testFolderPath, ARRAYSIZE(testFolderPath), JPEGWITHEXIFROTATION_UNITTEST_FOLDER) == S_OK);
 
             // Delete test folder
-            SHFILEOPSTRUCT fileStruct = { 0 };
-            fileStruct.pFrom = testFolderPath;
-            fileStruct.wFunc = FO_DELETE;
-            fileStruct.fFlags = FOF_SILENT | FOF_NOERRORUI | FOF_NO_UI;
-            SHFileOperation(&fileStruct);
+            DeleteHelper(testFolderPath);
         }
         
         TEST_METHOD(RotateAllConfigurationsTest)
@@ -98,20 +93,5 @@ namespace JPEGAutoRotatorUnitTests
 
             Assert::IsTrue(spRotationManager->Start() == S_OK);
         }
-        TEST_METHOD(RotateAllConfigurationsTest2)
-        {
-            CComPtr<IRotationManager> spRotationManager;
-            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
-
-            for (int i = 0; i < ARRAYSIZE(g_rgTestFiles); i++)
-            {
-                CComPtr<IRotationItem> spRotationItem;
-                Assert::IsTrue(CRotationItem::s_CreateInstance(g_rgTestFiles[i], &spRotationItem) == S_OK);
-                Assert::IsTrue(spRotationManager->AddItem(spRotationItem) == S_OK);
-            }
-
-            Assert::IsTrue(spRotationManager->Start() == S_OK);
-        }
-
     };
 }
