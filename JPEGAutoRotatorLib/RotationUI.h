@@ -43,8 +43,10 @@ public:
     IFACEMETHODIMP Close();
 
     // IRotationManagerEvents
+    IFACEMETHODIMP OnAdded(__in UINT uIndex);
     IFACEMETHODIMP OnRotated(__in UINT uIndex);
     IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
+    IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
     static HRESULT s_CreateInstance(__in IDataObject* pdo, __in IRotationManager* prm, __deref_out IRotationUI** pprui);

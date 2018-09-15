@@ -42,6 +42,7 @@ namespace JPEGAutoRotatorUnitTests
         TEST_CLASS_CLEANUP(Cleanup)
         {
         }
+
         TEST_METHOD(RotateAllConfigurationsTest)
         {
             // Get test file source folder
@@ -72,6 +73,9 @@ namespace JPEGAutoRotatorUnitTests
 
             Assert::IsTrue(spRotationManager->Start() == S_OK);
 
+            // TODO: Verify rotation happened as it should?
+
+            // Cleanup working folder
             DeleteHelper(testFolderWorking);
         }
     };

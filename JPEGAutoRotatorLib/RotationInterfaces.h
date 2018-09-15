@@ -15,8 +15,10 @@ public:
 interface __declspec(uuid("1FB14328-E681-4BC2-B947-00BAC0387A01")) IRotationManagerEvents : public IUnknown
 {
 public:
+    IFACEMETHOD(OnAdded)(__in UINT uIndex) = 0;
     IFACEMETHOD(OnRotated)(__in UINT uIndex) = 0;
     IFACEMETHOD(OnProgress)(__in UINT uCompleted, __in UINT uTotal) = 0;
+    IFACEMETHOD(OnCanceled)() = 0;
     IFACEMETHOD(OnCompleted)() = 0;
 };
 

@@ -58,6 +58,11 @@ IFACEMETHODIMP CRotationUI::Close()
 }
 
 // IRotationManagerEvents
+IFACEMETHODIMP CRotationUI::OnAdded(__in UINT uIndex)
+{
+    return S_OK;
+}
+
 IFACEMETHODIMP CRotationUI::OnRotated(__in UINT uIndex)
 {
     // TODO: Show dialog on error?  Can't block though
@@ -69,6 +74,15 @@ IFACEMETHODIMP CRotationUI::OnProgress(__in UINT uCompleted, __in UINT uTotal)
     if (m_sppd)
     {
         m_sppd->SetProgress(uCompleted, uTotal);
+    }
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationUI::OnCanceled()
+{
+    if (m_sppd)
+    {
+        m_sppd->StopProgressDialog();
     }
     return S_OK;
 }

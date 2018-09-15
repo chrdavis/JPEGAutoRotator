@@ -32,6 +32,7 @@ const RotateFlipType rotateFlipTable[] =
 enum
 {
     ROTM_ROTI_ROTATED = (WM_APP + 1),  // Single rotation item finished
+    ROTM_ROTI_CANCELED,                // Rotation operation was canceled
     ROTM_ROTI_COMPLETE,                // Worker thread completed
     ROTM_ENDTHREAD                     // End worker threads and exit manager
 };
@@ -41,15 +42,19 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     UINT  num = 0;          // number of image encoders
     UINT  size = 0;         // size of the image encoder array in bytes
 
-    ImageCodecInfo* pImageCodecInfo = NULL;
+    ImageCodecInfo* pImageCodecInfo = nullptr;
 
     GetImageEncodersSize(&num, &size);
     if (size == 0)
+    {
         return -1;  // Failure
+    }
 
     pImageCodecInfo = (ImageCodecInfo*)(malloc(size));
-    if (pImageCodecInfo == NULL)
+    if (pImageCodecInfo == nullptr)
+    {
         return -1;  // Failure
+    }
 
     GetImageEncoders(num, size, pImageCodecInfo);
 
@@ -349,6 +354,13 @@ HRESULT CRotationManager::_PerformRotation()
                         m_sprme->OnProgress(uCompleted, uTotalItems);
                     }
                 }
+                else if (msg.message == ROTM_ROTI_CANCELED)
+                {
+                    if (m_sprme)
+                    {
+                        m_sprme->OnCanceled();
+                    }
+                }
                 else if (msg.message == ROTM_ROTI_COMPLETE)
                 {
                     // Worker thread completed
@@ -466,6 +478,8 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
                     if (WaitForSingleObject(prwtd->hCancelEvent, 0) == WAIT_OBJECT_0)
                     {
                         // Cancelled from manager
+                        // Send the manager thread the canceled message
+                        PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_CANCELED, GetCurrentThreadId(), 0);
                         break;
                     }
 
@@ -526,9 +540,6 @@ HRESULT CRotationManager::_Init()
 
 void CRotationManager::_Cleanup()
 {
-    // Done with GDIPlus so shutdown now
-    GdiplusShutdown(m_gdiplusToken);
-
     for (UINT u = 0; u < m_uWorkerThreadCount; u++)
     {
         CloseHandle(m_workerThreadInfo[u].hWorker);
@@ -542,6 +553,9 @@ void CRotationManager::_Cleanup()
 
     CloseHandle(m_hCancelEvent);
     m_hCancelEvent = nullptr;
+
+    // Done with GDIPlus so shutdown now
+    GdiplusShutdown(m_gdiplusToken);
 }
 
 UINT CRotationManager::s_GetLogicalProcessorCount()
