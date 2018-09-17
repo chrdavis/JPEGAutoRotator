@@ -1,6 +1,7 @@
 #pragma once
 #include <ShlObj.h>
 #include "RotationInterfaces.h"
+#include <vector>
 
 class CRotationItem : public IRotationItem
 {
@@ -121,14 +122,23 @@ private:
         UINT uTotalItems;
     };
 
+    struct ROTATION_MANAGER_EVENTS
+    {
+        IRotationManagerEvents* prme;
+        DWORD dwCookie;
+    };
+
     ROTATION_WORKER_THREAD_INFO m_workerThreadInfo[MAX_ROTATION_WORKER_THREADS];
     HANDLE m_workerThreadHandles[MAX_ROTATION_WORKER_THREADS];
-    UINT m_uWorkerThreadCount;
-    CComPtr<IObjectCollection> m_spoc;
-    long  m_cRef;
+    UINT m_uWorkerThreadCount = 0;
+    long  m_cRef = 1;
     ULONG_PTR m_gdiplusToken;
-    HANDLE m_hCancelEvent;
-    HANDLE m_hStartEvent;
-    CComPtr<IRotationManagerEvents> m_sprme;
-    DWORD m_dwCookie;
+    HANDLE m_hCancelEvent = nullptr;
+    HANDLE m_hStartEvent = nullptr;
+    DWORD m_dwCookie = 0;
+    // TODO: convert to std vectors and make thread safe with SRWLocks (or a helper class)
+    SRWLOCK m_lockEvents;
+    SRWLOCK m_lockItems;
+    _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENTS*> m_rotationManagerEvents;
+    _Guarded_by_(m_lockItems) std::vector<IRotationManagerEvents*> m_rotationItems;
 };

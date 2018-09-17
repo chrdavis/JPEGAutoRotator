@@ -135,3 +135,5 @@ x64/Debug/TestFiles/JPEGWithExifRotation/Portrait_7.jpg
 x64/Debug/TestFiles/JPEGWithExifRotation/Portrait_8.jpg
 JPEGAutoRotatorTestUI/JPEGAutoRotatorTestUI.vcxproj.user
 *.aps
+JPEGAutoRotatorTestUI/x64/Debug/jpegautorotatortestui.obj.enc
+*.exe

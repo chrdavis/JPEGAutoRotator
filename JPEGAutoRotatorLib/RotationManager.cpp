@@ -226,10 +226,9 @@ CRotationManager::~CRotationManager()
 IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)
 {
     HRESULT hr = prme ? S_OK : E_FAIL;
-    if (SUCCEEDED(hr))
+    if (SUCCEEDED(hr) && m_spocRotationManagerEvents)
     {
-        // TODO: allow > 1 IRotationManagerEvents
-        m_sprme = prme;
+        m_spocRotationManagerEvents->AddObject(prme);
         m_dwCookie++;
         *pdwCookie = m_dwCookie;
     }
@@ -239,9 +238,9 @@ IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out
 
 IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
 {
-    if (dwCookie == m_dwCookie)
+    if (m_spocRotationManagerEvents)
     {
-        m_sprme = nullptr;
+        m_spocRotationManagerEvents->RemoveObjectAt(dwCookie);
     }
 
     return S_OK;
@@ -265,10 +264,10 @@ IFACEMETHODIMP CRotationManager::Cancel()
 
 IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
 {
-    HRESULT hr = (pri && m_spoc) ? S_OK : E_FAIL;
+    HRESULT hr = (pri && m_spocRotationItems) ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
     {
-        hr = m_spoc->AddObject(pri);
+        hr = m_spocRotationItems->AddObject(pri);
     }
     return hr;
 }
@@ -276,10 +275,10 @@ IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
 IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri)
 {
     *ppri = nullptr;
-    HRESULT hr = m_spoc ? S_OK : E_FAIL;
+    HRESULT hr = m_spocRotationItems ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
     {
-        hr = m_spoc->GetAt(uIndex, IID_PPV_ARGS(ppri));
+        hr = m_spocRotationItems->GetAt(uIndex, IID_PPV_ARGS(ppri));
     }
     return hr;
 }
@@ -287,10 +286,10 @@ IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotation
 IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
 {
     *puCount = 0;
-    HRESULT hr = m_spoc ? S_OK : E_FAIL;
+    HRESULT hr = m_spocRotationItems ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
     {
-        hr = m_spoc->GetCount(puCount);
+        hr = m_spocRotationItems->GetCount(puCount);
     }
     return hr;
 }
@@ -321,7 +320,7 @@ HRESULT CRotationManager::_PerformRotation()
     {
         UINT uCompleted = 0;
         UINT uTotalItems = 0;
-        m_spoc->GetCount(&uTotalItems);
+        m_spocRotationItems->GetCount(&uTotalItems);
 
         ResetEvent(m_hCancelEvent);
         // Signal the worker thread that they can start working. We needed to wait until we
@@ -388,7 +387,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
 {
     UINT uMaxWorkerThreads = min(s_GetLogicalProcessorCount(), MAX_ROTATION_WORKER_THREADS);
     UINT uTotalItems = 0;
-    HRESULT hr = m_spoc->GetCount(&uTotalItems);
+    HRESULT hr = m_spocRotationItems->GetCount(&uTotalItems);
     if (SUCCEEDED(hr))
     {
         hr = (uTotalItems > 0) ? S_OK : E_FAIL;
@@ -434,7 +433,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 prwtd->dwManagerThreadId = GetCurrentThreadId();
                 prwtd->hStartEvent = m_hStartEvent;
                 prwtd->hCancelEvent = m_hCancelEvent;
-                prwtd->poc = m_spoc;
+                prwtd->poc = m_spocRotationItems;
                 prwtd->poc->AddRef();
                 m_workerThreadInfo[u].hWorker = CreateThread(nullptr, 0, s_rotationWorkerThread, prwtd, 0, &m_workerThreadInfo[u].dwThreadId);
                 m_workerThreadHandles[u] = m_workerThreadInfo[u].hWorker;
@@ -520,18 +519,25 @@ HRESULT CRotationManager::_Init()
     HRESULT hr = CoCreateInstance(CLSID_EnumerableObjectCollection,
         nullptr,
         CLSCTX_INPROC_SERVER,
-        IID_PPV_ARGS(&m_spoc));
+        IID_PPV_ARGS(&m_spocRotationItems));
     if (SUCCEEDED(hr))
     {
-        // Event used to signal worker thread that it can start
-        m_hStartEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-        // Event used to signal worker thread in the event of a cancel
-        m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    
-        hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
-        if (FAILED(hr))
+        hr = CoCreateInstance(CLSID_EnumerableObjectCollection,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            IID_PPV_ARGS(&m_spocRotationManagerEvents));
+        if (SUCCEEDED(hr))
         {
-            _Cleanup();
+            // Event used to signal worker thread that it can start
+            m_hStartEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+            // Event used to signal worker thread in the event of a cancel
+            m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+            hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
+            if (FAILED(hr))
+            {
+                _Cleanup();
+            }
         }
     }
 
@@ -546,7 +552,7 @@ void CRotationManager::_Cleanup()
         m_workerThreadInfo[u].hWorker = nullptr;
     }
 
-    m_sprme = nullptr;
+    m_spocRotationManagerEvents = nullptr;
 
     CloseHandle(m_hStartEvent);
     m_hStartEvent = nullptr;
