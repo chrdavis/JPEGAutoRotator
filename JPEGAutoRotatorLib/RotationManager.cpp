@@ -599,10 +599,9 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
                         // Perform the rotation
                         HRESULT hrWork = spri->Rotate();
                         spri->put_Result(hrWork);
+                        // Send the manager thread the rotation item completed message
+                        PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ROTATED, GetCurrentThreadId(), u);
                     }
-
-                    // Send the manager thread the rotation item completed message
-                    PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ROTATED, GetCurrentThreadId(), u);
                 }
             }
 

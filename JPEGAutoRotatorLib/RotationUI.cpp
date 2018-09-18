@@ -65,8 +65,28 @@ IFACEMETHODIMP CRotationUI::OnAdded(__in UINT)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnRotated(__in UINT)
+IFACEMETHODIMP CRotationUI::OnRotated(__in UINT uIndex)
 {
+    // Update the item in our list view
+    if (m_sprm)
+    {
+        CComPtr<IRotationItem> spri;
+        if (SUCCEEDED(m_sprm->GetItem(uIndex, &spri)))
+        {
+            BOOL wasRotated = FALSE;
+            if (SUCCEEDED(spri->get_WasRotated(&wasRotated)) && wasRotated)
+            {
+                PWSTR path = nullptr;
+                if (SUCCEEDED(spri->get_Path(&path)))
+                {
+                    // Notify the Shell to update the thumbnail
+                    SHChangeNotify(SHCNE_UPDATEITEM, (SHCNF_PATH | SHCNF_FLUSHNOWAIT), path, nullptr);
+                    CoTaskMemFree(path);
+                }
+            }
+        }
+    }
+
     return S_OK;
 }
 
