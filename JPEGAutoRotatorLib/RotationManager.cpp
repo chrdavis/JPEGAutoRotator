@@ -335,7 +335,6 @@ IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
     return S_OK;
 }
 
-
 // IRotationManagerEvents
 IFACEMETHODIMP CRotationManager::OnAdded(__in UINT uIndex)
 {
@@ -420,7 +419,6 @@ IFACEMETHODIMP CRotationManager::OnCompleted()
 
     return S_OK;
 }
-
 
 HRESULT CRotationManager::s_CreateInstance(__deref_out IRotationManager** pprm)
 {
@@ -684,10 +682,6 @@ void CRotationManager::_Cleanup()
         CloseHandle(m_workerThreadInfo[u].hWorker);
         m_workerThreadInfo[u].hWorker = nullptr;
     }
-
-   
-
-    
 
     CloseHandle(m_hStartEvent);
     m_hStartEvent = nullptr;
