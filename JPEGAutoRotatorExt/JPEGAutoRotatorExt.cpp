@@ -98,9 +98,12 @@ DWORD WINAPI CJPEGAutoRotatorMenu::s_RotationUIThreadProc(_In_ void* pData)
         {
             // Create the rotation UI instance and pass the rotation manager
             CComPtr<IRotationUI> sprui;
-            if (SUCCEEDED(CRotationUI::s_CreateInstance(spdo, sprm, &sprui)))
+            if (SUCCEEDED(CRotationUI::s_CreateInstance(sprm, &sprui)))
             {
-                sprui->Start();
+                if (SUCCEEDED(sprui->Initialize(spdo)))
+                {
+                    sprui->Start();
+                }
             }
         }
     }

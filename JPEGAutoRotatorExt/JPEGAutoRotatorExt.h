@@ -41,7 +41,7 @@ public:
     // IContextMenu
     STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uIDFirst, UINT uIDLast, UINT uFlags);
     STDMETHODIMP InvokeCommand(__in LPCMINVOKECOMMANDINFO pCMI);
-    STDMETHODIMP GetCommandString(UINT_PTR uID, UINT uFlags, __in_opt UINT* res, __in LPSTR pName, UINT ccMax)
+    STDMETHODIMP GetCommandString(UINT_PTR, UINT, __in_opt UINT*, __in LPSTR, UINT)
     {
         return E_NOTIMPL;
     }

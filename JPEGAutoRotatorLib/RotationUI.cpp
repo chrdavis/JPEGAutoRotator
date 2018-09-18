@@ -13,14 +13,14 @@ CRotationUI::~CRotationUI()
 {
 }
 
-HRESULT CRotationUI::s_CreateInstance(__in IDataObject* pdo, __in IRotationManager* prm, __deref_out IRotationUI** pprui)
+HRESULT CRotationUI::s_CreateInstance(__in IRotationManager* prm, __deref_out IRotationUI** pprui)
 {
     *pprui = nullptr;
     CRotationUI *prui = new CRotationUI();
     HRESULT hr = prui ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
-        hr = prui->_Initialize(pdo, prm);
+        hr = prui->_Initialize(prm);
         if (SUCCEEDED(hr))
         {
             hr = prui->QueryInterface(IID_PPV_ARGS(pprui));
@@ -31,19 +31,21 @@ HRESULT CRotationUI::s_CreateInstance(__in IDataObject* pdo, __in IRotationManag
 }
 
 // IRotationUI
+IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
+{
+    m_spdo = pdo;
+    return _EnumerateDataObject();
+}
+
 IFACEMETHODIMP CRotationUI::Start()
 {
     // Start progress dialog
     m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
 
-    HRESULT hr = _EnumerateDataObject();
-    if (SUCCEEDED(hr))
-    {
-        // Start operation.  Here we will block but we should get reentered in our event callback.
-        // That way we can update the progress dialog, check the cancel state and notify the 
-        // manager if we want to cancel.
-        hr = m_sprm->Start();
-    }
+    // Start operation.  Here we will block but we should get reentered in our event callback.
+    // That way we can update the progress dialog, check the cancel state and notify the 
+    // manager if we want to cancel.
+    HRESULT hr = m_sprm->Start();
 
     m_sppd->StopProgressDialog();
 
@@ -58,14 +60,13 @@ IFACEMETHODIMP CRotationUI::Close()
 }
 
 // IRotationManagerEvents
-IFACEMETHODIMP CRotationUI::OnAdded(__in UINT uIndex)
+IFACEMETHODIMP CRotationUI::OnAdded(__in UINT)
 {
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnRotated(__in UINT uIndex)
+IFACEMETHODIMP CRotationUI::OnRotated(__in UINT)
 {
-    // TODO: Show dialog on error?  Can't block though
     return S_OK;
 }
 
@@ -96,10 +97,8 @@ IFACEMETHODIMP CRotationUI::OnCompleted()
     return S_OK;
 }
 
-HRESULT CRotationUI::_Initialize(__in IDataObject* pdo, __in IRotationManager* prm)
+HRESULT CRotationUI::_Initialize(__in IRotationManager* prm)
 {
-    // Cache the data object for now.  We will enumerate in Start.
-    m_spdo = pdo;
     m_sprm = prm;
 
     // Subscribe to rotation manager events
@@ -149,7 +148,6 @@ void CRotationUI::_Cleanup()
 // Iterate through the data object and add items to the rotation manager
 HRESULT CRotationUI::_EnumerateDataObject()
 {
-    // TODO: add namespace walker to walk folders and subfolders
     CComPtr<IShellItemArray> spsia;
     HRESULT hr = SHCreateShellItemArrayFromDataObject(m_spdo, IID_PPV_ARGS(&spsia));
     if (SUCCEEDED(hr))

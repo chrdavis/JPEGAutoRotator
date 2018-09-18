@@ -2,6 +2,7 @@
 #include <ShlObj.h>
 #include "RotationInterfaces.h"
 #include <vector>
+#include "srwlock.h"
 
 class CRotationItem : public IRotationItem
 {
@@ -34,10 +35,14 @@ public:
         return cRef;
     }
 
-    IFACEMETHODIMP GetPath(__deref_out PWSTR* ppszPath);
-    IFACEMETHODIMP SetPath(__in PCWSTR pszPath);
-    IFACEMETHODIMP GetResult(__out HRESULT* phrResult);
-    IFACEMETHODIMP SetResult(__in HRESULT hrResult);
+    IFACEMETHODIMP get_Path(__deref_out PWSTR* ppszPath);
+    IFACEMETHODIMP put_Path(__in PCWSTR pszPath);
+    IFACEMETHODIMP get_WasRotated(__out BOOL* pfWasRotated);
+    IFACEMETHODIMP get_IsValidJPEG(__out BOOL* pfIsValidJPEG);
+    IFACEMETHODIMP get_IsRotationLossless(__out BOOL* pfIsRotationLossless);
+    IFACEMETHODIMP get_OriginalOrientation(__out UINT* puOriginalOrientation);
+    IFACEMETHODIMP get_Result(__out HRESULT* phrResult);
+    IFACEMETHODIMP put_Result(__in HRESULT hrResult);
     IFACEMETHODIMP Rotate();
 
     static HRESULT s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotationItem** ppri);
@@ -46,9 +51,13 @@ private:
     ~CRotationItem();
 
 private:
-    PWSTR m_pszPath;
-    long m_cRef;
-    HRESULT m_hrResult;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
+    PWSTR m_pszPath = nullptr;
+    bool m_fWasRotated = false;
+    bool m_fIsValidJPEG = false;
+    bool m_fIsRotationLossless = true;
+    UINT m_uOriginalOrientation = 1;
+    long m_cRef = 1;
+    HRESULT m_hrResult = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
 };
 
 // TODO: Consider modifying the below or making them customizable via the interface.  We will likely want to control
@@ -61,7 +70,9 @@ private:
 // Minimum amount of work to schedule to a worker thread
 #define MIN_ROTATION_WORK_SIZE 5
 
-class CRotationManager : public IRotationManager
+class CRotationManager : 
+    public IRotationManager,
+    public IRotationManagerEvents
 {
 public:
     CRotationManager();
@@ -72,6 +83,7 @@ public:
         static const QITAB qit[] =
         {
             QITABENT(CRotationManager, IRotationManager),
+            QITABENT(CRotationManager, IRotationManagerEvents),
             { 0, 0 },
         };
         return QISearch(this, qit, riid, ppv);
@@ -92,6 +104,7 @@ public:
         return cRef;
     }
 
+    // IRotationManager
     IFACEMETHODIMP Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie);
     IFACEMETHODIMP UnAdvise(__in DWORD dwCookie);
     IFACEMETHODIMP Start();
@@ -99,6 +112,13 @@ public:
     IFACEMETHODIMP AddItem(__in IRotationItem* pri);
     IFACEMETHODIMP GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri);
     IFACEMETHODIMP GetItemCount(__out UINT* puCount);
+
+    // IRotationManagerEvents
+    IFACEMETHODIMP OnAdded(__in UINT uIndex);
+    IFACEMETHODIMP OnRotated(__in UINT uIndex);
+    IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
+    IFACEMETHODIMP OnCanceled();
+    IFACEMETHODIMP OnCompleted();
 
     static HRESULT s_CreateInstance(__deref_out IRotationManager** pprm);
 
@@ -109,6 +129,9 @@ private:
     void _Cleanup();
     HRESULT _PerformRotation();
     HRESULT _CreateWorkerThreads();
+
+    void _ClearRotationItems();
+    void _ClearEventHandlers();
 
     static UINT s_GetLogicalProcessorCount();
     static DWORD WINAPI s_rotationWorkerThread(__in void* pv);
@@ -122,7 +145,7 @@ private:
         UINT uTotalItems;
     };
 
-    struct ROTATION_MANAGER_EVENTS
+    struct ROTATION_MANAGER_EVENT
     {
         IRotationManagerEvents* prme;
         DWORD dwCookie;
@@ -139,6 +162,6 @@ private:
     // TODO: convert to std vectors and make thread safe with SRWLocks (or a helper class)
     SRWLOCK m_lockEvents;
     SRWLOCK m_lockItems;
-    _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENTS*> m_rotationManagerEvents;
-    _Guarded_by_(m_lockItems) std::vector<IRotationManagerEvents*> m_rotationItems;
+    _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENT> m_rotationManagerEvents;
+    _Guarded_by_(m_lockItems) std::vector<IRotationItem*> m_rotationItems;
 };

@@ -29,6 +29,9 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "JPEGAutoRotatorInstaller64"
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JPEGAutoRotatorTestUI", "JPEGAutoRotatorTestUI\JPEGAutoRotatorTestUI.vcxproj", "{A4103E45-741D-4821-8E87-87025D5CF5EC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B4EFD9D0-3D67-442F-9EEA-45E7382DCF00} = {B4EFD9D0-3D67-442F-9EEA-45E7382DCF00}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -4,11 +4,14 @@
 interface __declspec(uuid("FFB76FF1-DE4B-459A-A6C7-025392CFDA53")) IRotationItem : public IUnknown
 {
 public:
-
-    IFACEMETHOD(GetPath)(__deref_out PWSTR* ppszPath) = 0;
-    IFACEMETHOD(SetPath)(__in PCWSTR pszPath) = 0;
-    IFACEMETHOD(GetResult)(__out HRESULT* phrResult) = 0;
-    IFACEMETHOD(SetResult)(__in HRESULT hrResult) = 0;
+    IFACEMETHOD(get_Path)(__deref_out PWSTR* ppszPath) = 0;
+    IFACEMETHOD(put_Path)(__in PCWSTR pszPath) = 0;
+    IFACEMETHOD(get_WasRotated)(__out BOOL* pfWasRotated) = 0;
+    IFACEMETHOD(get_IsValidJPEG)(__out BOOL* pfIsValidJPEG) = 0;
+    IFACEMETHOD(get_IsRotationLossless)(__out BOOL* pfIsRotationLossless) = 0;
+    IFACEMETHOD(get_OriginalOrientation)(__out UINT* puOriginalOrientation) = 0;
+    IFACEMETHOD(get_Result)(__out HRESULT* phrResult) = 0;
+    IFACEMETHOD(put_Result)(__in HRESULT hrResult) = 0;
     IFACEMETHOD(Rotate)() = 0;
 };
 
@@ -37,6 +40,7 @@ public:
 interface __declspec(uuid("39EEEC7B-81B4-4719-90E1-37D70059724C")) IRotationUI : public IUnknown
 {
 public:
+    IFACEMETHOD(Initialize)(__in IDataObject* pdo) = 0;
     IFACEMETHOD(Start)() = 0;
     IFACEMETHOD(Close)() = 0;
 };
