@@ -2,7 +2,6 @@
 #include <ShlObj.h>
 #include "RotationInterfaces.h"
 #include <vector>
-#include "srwlock.h"
 
 class CRotationItem : public IRotationItem
 {

@@ -183,6 +183,8 @@ IFACEMETHODIMP CRotationItem::Rotate()
                 if (pImage->GetRawFormat(&guidGdiplusFormat) == Ok &&
                     (guidGdiplusFormat == ImageFormatJPEG))
                 {
+                    // Dimensions must be multiples of 8 for the rotation to be lossless
+                    m_fIsRotationLossless = ((pImage->GetHeight() % 8 == 0) && (pImage->GetWidth() % 8 == 0));
                     m_fIsValidJPEG = true;
                     const int LOCAL_BUFFER_SIZE = 32;
                     BYTE buffer[LOCAL_BUFFER_SIZE];
