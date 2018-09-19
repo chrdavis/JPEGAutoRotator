@@ -4,7 +4,7 @@
 #include "RotationManager.h"
 #include "resource.h"
 
-static HINSTANCE g_hInst = 0;
+extern HINSTANCE g_hInst;
 
 CJPEGAutoRotatorMenu::CJPEGAutoRotatorMenu() :
     m_cRef(1),
@@ -49,7 +49,7 @@ HRESULT CJPEGAutoRotatorMenu::QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uI
         {
             WCHAR szMenuName[64] = { 0 };
             LoadString(g_hInst, _IsFolder() ? IDS_AUTOROTATEFOLDER : IDS_AUTOROTATEIMAGE, szMenuName, ARRAYSIZE(szMenuName));
-            InsertMenu(hMenu, uIndex, MF_STRING | MF_BYPOSITION, uIDFirst++, szMenuName);
+            InsertMenu(hMenu, uIndex, MF_STRING | MF_BYPOSITION, uIDFirst++, L"Auto-Rotate Image");
             hr = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1);
         }
     }

@@ -2,7 +2,7 @@
 #include "JPEGAutoRotatorExt.h"
 
 DWORD g_dwModuleRefCount = 0;
-HINSTANCE g_hInst;
+HINSTANCE g_hInst = 0;
 
 class CJPEGAutoRotatorClassFactory : public IClassFactory
 {
