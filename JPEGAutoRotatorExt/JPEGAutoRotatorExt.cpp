@@ -48,7 +48,7 @@ HRESULT CJPEGAutoRotatorMenu::QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uI
         if ((uFlags & ~CMF_OPTIMIZEFORINVOKE) && (uFlags & ~(CMF_DEFAULTONLY | CMF_VERBSONLY)))
         {
             WCHAR szMenuName[64] = { 0 };
-            LoadString(g_hInst, IDS_AUTOROTATEIMAGE, szMenuName, ARRAYSIZE(szMenuName));
+            LoadString(g_hInst, _IsFolder() ? IDS_AUTOROTATEFOLDER : IDS_AUTOROTATEIMAGE, szMenuName, ARRAYSIZE(szMenuName));
             InsertMenu(hMenu, uIndex, MF_STRING | MF_BYPOSITION, uIDFirst++, szMenuName);
             hr = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1);
         }
@@ -77,14 +77,47 @@ HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
     return hr;
 }
 
-// TODO: can we create the progress dialog here and setup a callback on the rotation manager?
-// TODO: What is the lifetime of CJPEGAutoRotatorMenu?  Is it released after we enter the thread below?
-// TODO: Or can it host our callback interface and update the progress dialog?
-// TODO: We should also convert the IDataObject to IShellItems and create IRenameItems.  Then add
-// TODO: them to the manager here.
+bool CJPEGAutoRotatorMenu::_IsFolder()
+{
+    bool isFolder = false;
 
-// TODO: We should create the rotation manager and the rotation UI instances here.  
-// TODO: Pass the rotation manager to the UI so we can keep them separate for testing.
+    CComPtr<IShellItemArray> spsia;
+    HRESULT hr = SHCreateShellItemArrayFromDataObject(m_spdo, IID_PPV_ARGS(&spsia));
+    if (SUCCEEDED(hr))
+    {
+        CComPtr<IShellItem> spsi;
+        hr = spsia->GetItemAt(0, &spsi);
+        if (SUCCEEDED(hr))
+        {
+            PWSTR pszFilePath = nullptr;
+            hr = spsi->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+            if (SUCCEEDED(hr))
+            {
+                if (GetFileAttributes(pszFilePath) & FILE_ATTRIBUTE_DIRECTORY)
+                {
+                    isFolder = true;
+                }
+                else
+                {
+                    PCWSTR pszExt = PathFindExtension(pszFilePath);
+                    if (pszExt)
+                    {
+                        isFolder = false;
+                    }
+                }
+
+                CoTaskMemFree(pszFilePath);
+            }
+            else
+            {
+                isFolder = true;
+            }
+        }
+    }
+
+    return isFolder;
+}
+
 DWORD WINAPI CJPEGAutoRotatorMenu::s_RotationUIThreadProc(_In_ void* pData)
 {
     IStream* pstrm = (IStream*)pData;

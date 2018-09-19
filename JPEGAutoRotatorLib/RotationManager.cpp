@@ -251,13 +251,11 @@ IFACEMETHODIMP CRotationItem::Rotate()
 
 CRotationManager::CRotationManager()
 {
-    DllAddRef();
 }
 
 CRotationManager::~CRotationManager()
 {
     _Cleanup();
-    DllRelease();
 }
 
 IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)

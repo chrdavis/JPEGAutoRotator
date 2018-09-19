@@ -52,6 +52,8 @@ public:
 private:
     ~CJPEGAutoRotatorMenu();
 
+    bool _IsFolder();
+
     long m_cRef;
     CComPtr<IDataObject> m_spdo;
 };
