@@ -91,6 +91,7 @@ IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
 
 IFACEMETHODIMP CRotationUI::OnProgress(__in UINT uCompleted, __in UINT uTotal)
 {
+    m_sppd->SetTitle(L"Auto-Rotate Images")
     if (m_sppd)
     {
         m_sppd->SetProgress(uCompleted, uTotal);
