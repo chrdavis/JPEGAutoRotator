@@ -33,8 +33,7 @@ HRESULT CRotationUI::s_CreateInstance(__in IRotationManager* prm, __deref_out IR
 // IRotationUI
 IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
 {
-    m_spdo = pdo;
-    return _EnumerateDataObject();
+    return _EnumerateDataObject(pdo);
 }
 
 IFACEMETHODIMP CRotationUI::Start()
@@ -60,12 +59,12 @@ IFACEMETHODIMP CRotationUI::Close()
 }
 
 // IRotationManagerEvents
-IFACEMETHODIMP CRotationUI::OnAdded(__in UINT)
+IFACEMETHODIMP CRotationUI::OnItemAdded(__in UINT)
 {
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnRotated(__in UINT uIndex)
+IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
 {
     // Update the item in our list view
     if (m_sprm)
@@ -161,15 +160,14 @@ void CRotationUI::_Cleanup()
     }
 
     m_sprm = nullptr;
-    m_spdo = nullptr;
     m_sppd = nullptr;
 }
 
 // Iterate through the data object and add items to the rotation manager
-HRESULT CRotationUI::_EnumerateDataObject()
+HRESULT CRotationUI::_EnumerateDataObject(__in IDataObject* pdo)
 {
     CComPtr<IShellItemArray> spsia;
-    HRESULT hr = SHCreateShellItemArrayFromDataObject(m_spdo, IID_PPV_ARGS(&spsia));
+    HRESULT hr = SHCreateShellItemArrayFromDataObject(pdo, IID_PPV_ARGS(&spsia));
     if (SUCCEEDED(hr))
     {
         CComPtr<IEnumShellItems> spesi;

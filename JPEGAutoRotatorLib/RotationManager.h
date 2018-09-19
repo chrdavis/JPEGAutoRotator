@@ -2,6 +2,7 @@
 #include <ShlObj.h>
 #include "RotationInterfaces.h"
 #include <vector>
+#include "srwlock.h"
 
 class CRotationItem : public IRotationItem
 {
@@ -50,13 +51,15 @@ private:
     ~CRotationItem();
 
 private:
+    long m_cRef = 1;
     PWSTR m_pszPath = nullptr;
     bool m_fWasRotated = false;
     bool m_fIsValidJPEG = false;
     bool m_fIsRotationLossless = true;
     UINT m_uOriginalOrientation = 1;
-    long m_cRef = 1;
     HRESULT m_hrResult = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
+    CSRWLock m_lock;
+    static UINT s_uTagOrientationPropSize;
 };
 
 // TODO: Consider modifying the below or making them customizable via the interface.  We will likely want to control
@@ -108,13 +111,14 @@ public:
     IFACEMETHODIMP UnAdvise(__in DWORD dwCookie);
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Cancel();
+    IFACEMETHODIMP Shutdown();
     IFACEMETHODIMP AddItem(__in IRotationItem* pri);
     IFACEMETHODIMP GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri);
     IFACEMETHODIMP GetItemCount(__out UINT* puCount);
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnAdded(__in UINT uIndex);
-    IFACEMETHODIMP OnRotated(__in UINT uIndex);
+    IFACEMETHODIMP OnItemAdded(__in UINT uIndex);
+    IFACEMETHODIMP OnItemProcessed(__in UINT uIndex);
     IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
@@ -158,9 +162,8 @@ private:
     HANDLE m_hCancelEvent = nullptr;
     HANDLE m_hStartEvent = nullptr;
     DWORD m_dwCookie = 0;
-    // TODO: convert to std vectors and make thread safe with SRWLocks (or a helper class)
-    SRWLOCK m_lockEvents;
-    SRWLOCK m_lockItems;
+    CSRWLock m_lockEvents;
+    CSRWLock m_lockItems;
     _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENT> m_rotationManagerEvents;
     _Guarded_by_(m_lockItems) std::vector<IRotationItem*> m_rotationItems;
 };

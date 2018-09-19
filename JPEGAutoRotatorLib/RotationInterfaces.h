@@ -18,8 +18,8 @@ public:
 interface __declspec(uuid("1FB14328-E681-4BC2-B947-00BAC0387A01")) IRotationManagerEvents : public IUnknown
 {
 public:
-    IFACEMETHOD(OnAdded)(__in UINT uIndex) = 0;
-    IFACEMETHOD(OnRotated)(__in UINT uIndex) = 0;
+    IFACEMETHOD(OnItemAdded)(__in UINT uIndex) = 0;
+    IFACEMETHOD(OnItemProcessed)(__in UINT uIndex) = 0;
     IFACEMETHOD(OnProgress)(__in UINT uCompleted, __in UINT uTotal) = 0;
     IFACEMETHOD(OnCanceled)() = 0;
     IFACEMETHOD(OnCompleted)() = 0;
@@ -32,6 +32,7 @@ public:
     IFACEMETHOD(UnAdvise)(__in DWORD dwCookie) = 0;
     IFACEMETHOD(Start)() = 0;
     IFACEMETHOD(Cancel)() = 0;
+    IFACEMETHOD(Shutdown)() = 0;
     IFACEMETHOD(AddItem)(__in IRotationItem* pri) = 0;
     IFACEMETHOD(GetItem)(__in UINT uIndex, __deref_out IRotationItem** ppri) = 0;
     IFACEMETHOD(GetItemCount)(__out UINT* puCount) = 0;

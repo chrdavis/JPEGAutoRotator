@@ -1,5 +1,7 @@
 #pragma once
 
+#include "targetver.h"
+
 // Windows Header Files:
 #include <windows.h>
 #include <unknwn.h>
@@ -8,7 +10,6 @@
 #include <Shobjidl.h>
 #include <Shlobj.h>
 #include <PathCch.h>
-#include "targetver.h"
 
 #include "CppUnitTest.h"
 

@@ -42,7 +42,6 @@ namespace JPEGAutoRotatorUnitTests
         TEST_CLASS_CLEANUP(Cleanup)
         {
         }
-
         TEST_METHOD(RotateAllConfigurationsTest)
         {
             // Get test file source folder

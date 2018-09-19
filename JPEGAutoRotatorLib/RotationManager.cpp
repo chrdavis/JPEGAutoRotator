@@ -31,10 +31,10 @@ const RotateFlipType rotateFlipTable[] =
 // Custom messages for rotation manager worker thread
 enum
 {
-    ROTM_ROTI_ROTATED = (WM_APP + 1),  // Single rotation item finished
-    ROTM_ROTI_CANCELED,                // Rotation operation was canceled
-    ROTM_ROTI_COMPLETE,                // Worker thread completed
-    ROTM_ENDTHREAD                     // End worker threads and exit manager
+    ROTM_ROTI_ITEM_PROCESSED = (WM_APP + 1),  // Single rotation item processed
+    ROTM_ROTI_CANCELED,                       // Rotation operation was canceled
+    ROTM_ROTI_COMPLETE,                       // Worker thread completed
+    ROTM_ENDTHREAD                            // End worker threads and exit manager
 };
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
@@ -81,6 +81,8 @@ struct RotateWorkerThreadData
     CComPtr<IRotationManager> sprm;
 };
 
+UINT CRotationItem::s_uTagOrientationPropSize = 0;
+
 CRotationItem::CRotationItem()
 {
 }
@@ -109,6 +111,7 @@ HRESULT CRotationItem::s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotati
 
 IFACEMETHODIMP CRotationItem::get_Path(__deref_out PWSTR* ppszPath)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *ppszPath = nullptr;
     HRESULT hr = m_pszPath ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
@@ -120,6 +123,7 @@ IFACEMETHODIMP CRotationItem::get_Path(__deref_out PWSTR* ppszPath)
 
 IFACEMETHODIMP CRotationItem::put_Path(__in PCWSTR pszPath)
 {
+    CSRWExclusiveAutoLock lock(&m_lock);
     HRESULT hr = pszPath ? S_OK : E_INVALIDARG;
     if (SUCCEEDED(hr))
     {
@@ -131,42 +135,49 @@ IFACEMETHODIMP CRotationItem::put_Path(__in PCWSTR pszPath)
 
 IFACEMETHODIMP CRotationItem::get_WasRotated(__out BOOL* pfWasRotated)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *pfWasRotated = m_fWasRotated;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationItem::get_IsValidJPEG(__out BOOL* pfIsValidJPEG)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *pfIsValidJPEG = m_fIsValidJPEG;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationItem::get_IsRotationLossless(__out BOOL* pfIsRotationLossless)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *pfIsRotationLossless = m_fIsRotationLossless;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationItem::get_OriginalOrientation(__out UINT* puOriginalOrientation)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *puOriginalOrientation = m_uOriginalOrientation;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationItem::get_Result(__out HRESULT* phrResult)
 {
+    CSRWSharedAutoLock lock(&m_lock);
     *phrResult = m_hrResult;
     return S_OK; 
 }
 
 IFACEMETHODIMP CRotationItem::put_Result(__in HRESULT hrResult)
 {
+    CSRWExclusiveAutoLock lock(&m_lock);
     m_hrResult = hrResult;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationItem::Rotate()
 {
+    CSRWExclusiveAutoLock lock(&m_lock);
     HRESULT hr = m_pszPath ? S_OK : E_FAIL;
     if (SUCCEEDED(hr))
     {
@@ -186,14 +197,21 @@ IFACEMETHODIMP CRotationItem::Rotate()
                     // Dimensions must be multiples of 8 for the rotation to be lossless
                     m_fIsRotationLossless = ((pImage->GetHeight() % 8 == 0) && (pImage->GetWidth() % 8 == 0));
                     m_fIsValidJPEG = true;
-                    const int LOCAL_BUFFER_SIZE = 32;
-                    BYTE buffer[LOCAL_BUFFER_SIZE];
-                    PropertyItem* pItem = (PropertyItem*)buffer;
-                    UINT uSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
+
+                    // GetPropertyItemSize is costly so try to only get this once
+                    if (s_uTagOrientationPropSize == 0)
+                    {
+                        s_uTagOrientationPropSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
+                    }
+
                     if (pImage->GetLastStatus() == Ok)
                     {
-                        if (uSize < LOCAL_BUFFER_SIZE &&
-                            pImage->GetPropertyItem(PropertyTagOrientation, uSize, pItem) == Gdiplus::Ok &&
+                        const int LOCAL_BUFFER_SIZE = 32;
+                        BYTE buffer[LOCAL_BUFFER_SIZE];
+                        PropertyItem* pItem = (PropertyItem*)buffer;
+
+                        if (s_uTagOrientationPropSize < LOCAL_BUFFER_SIZE &&
+                            pImage->GetPropertyItem(PropertyTagOrientation, s_uTagOrientationPropSize, pItem) == Gdiplus::Ok &&
                             pItem->type == PropertyTagTypeShort)
                         {
                             m_uOriginalOrientation = static_cast<UINT>(*((USHORT*)pItem->value));
@@ -219,8 +237,12 @@ IFACEMETHODIMP CRotationItem::Rotate()
                         }
                     }
                 }
+            }
 
+            if (pImage)
+            {
                 delete pImage;
+                pImage = nullptr;
             }
         }
     }
@@ -230,9 +252,6 @@ IFACEMETHODIMP CRotationItem::Rotate()
 CRotationManager::CRotationManager()
 {
     DllAddRef();
-
-    InitializeSRWLock(&m_lockItems);
-    InitializeSRWLock(&m_lockEvents);
 }
 
 CRotationManager::~CRotationManager()
@@ -243,7 +262,7 @@ CRotationManager::~CRotationManager()
 
 IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
     m_dwCookie++;
     ROTATION_MANAGER_EVENT rmestruct;
     rmestruct.dwCookie = m_dwCookie;
@@ -253,14 +272,12 @@ IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out
     
     *pdwCookie = m_dwCookie;
 
-    ReleaseSRWLockExclusive(&m_lockEvents);
-    
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
@@ -275,8 +292,6 @@ IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
             break;
         }
     }
-
-    ReleaseSRWLockExclusive(&m_lockEvents);
 
     return S_OK;
 }
@@ -297,16 +312,26 @@ IFACEMETHODIMP CRotationManager::Cancel()
     return S_OK;
 }
 
+IFACEMETHODIMP CRotationManager::Shutdown()
+{
+    // Cancel any running operations
+    Cancel();
+    // Kickoff cleanup
+    _Cleanup();
+
+    return S_OK;
+}
+
 IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
 {
-    AcquireSRWLockExclusive(&m_lockItems);
+    // Scope lock
+    {
+        CSRWExclusiveAutoLock lock(&m_lockItems);
+        m_rotationItems.push_back(pri);
+        pri->AddRef();
+    }
 
-    m_rotationItems.push_back(pri);
-    pri->AddRef();
-
-    ReleaseSRWLockExclusive(&m_lockItems);
-
-    OnAdded(static_cast<UINT>(m_rotationItems.size() - 1));
+    OnItemAdded(static_cast<UINT>(m_rotationItems.size() - 1));
 
     return S_OK;
 }
@@ -314,7 +339,7 @@ IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
 IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri)
 {
     *ppri = nullptr;
-    AcquireSRWLockShared(&m_lockItems);
+    CSRWSharedAutoLock lock(&m_lockItems);
     HRESULT hr = E_FAIL;
     if (uIndex < m_rotationItems.size())
     {
@@ -323,55 +348,50 @@ IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotation
         hr = S_OK;
     }
 
-    ReleaseSRWLockShared(&m_lockItems);
     return hr;
 }
 
 IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
 {
-    AcquireSRWLockShared(&m_lockItems);
+    CSRWSharedAutoLock lock(&m_lockItems);
     *puCount = static_cast<UINT>(m_rotationItems.size());
-    ReleaseSRWLockShared(&m_lockItems);
     return S_OK;
 }
 
 // IRotationManagerEvents
-IFACEMETHODIMP CRotationManager::OnAdded(__in UINT uIndex)
+IFACEMETHODIMP CRotationManager::OnItemAdded(__in UINT uIndex)
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
         if (it->prme)
         {
-            it->prme->OnAdded(uIndex);
+            it->prme->OnItemAdded(uIndex);
         }
     }
-
-    ReleaseSRWLockExclusive(&m_lockEvents);
 
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::OnRotated(__in UINT uIndex)
+IFACEMETHODIMP CRotationManager::OnItemProcessed(__in UINT uIndex)
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
         if (it->prme)
         {
-            it->prme->OnRotated(uIndex);
+            it->prme->OnItemProcessed(uIndex);
         }
     }
 
-    ReleaseSRWLockExclusive(&m_lockEvents);
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::OnProgress(__in UINT uCompleted, __in UINT uTotal)
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
@@ -381,14 +401,12 @@ IFACEMETHODIMP CRotationManager::OnProgress(__in UINT uCompleted, __in UINT uTot
         }
     }
 
-    ReleaseSRWLockExclusive(&m_lockEvents);
-
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::OnCanceled()
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
@@ -398,14 +416,12 @@ IFACEMETHODIMP CRotationManager::OnCanceled()
         }
     }
 
-    ReleaseSRWLockExclusive(&m_lockEvents);
-
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationManager::OnCompleted()
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
@@ -414,8 +430,6 @@ IFACEMETHODIMP CRotationManager::OnCompleted()
             it->prme->OnCompleted();
         }
     }
-
-    ReleaseSRWLockExclusive(&m_lockEvents);
 
     return S_OK;
 }
@@ -469,10 +483,10 @@ HRESULT CRotationManager::_PerformRotation()
                     // Break out of the loop and end the thread
                     fDone = true;
                 }
-                else if (msg.message == ROTM_ROTI_ROTATED)
+                else if (msg.message == ROTM_ROTI_ITEM_PROCESSED)
                 {
                     uCompleted++;
-                    OnRotated(static_cast<UINT>(msg.lParam));
+                    OnItemProcessed(static_cast<UINT>(msg.lParam));
                     OnProgress(uCompleted, uTotalItems);
                 }
                 else if (msg.message == ROTM_ROTI_CANCELED)
@@ -552,7 +566,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 if (SUCCEEDED(hr))
                 {
                     // increment the indices for the next thread
-                    uFirstIndex = uLastIndex++;
+                    uFirstIndex = ++uLastIndex;
                     uLastIndex = min((uFirstIndex + uItemsPerWorker), uTotalItems - 1);
                 }
                 else
@@ -596,11 +610,17 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
                     CComPtr<IRotationItem> spri;
                     if (SUCCEEDED(prwtd->sprm->GetItem(u, &spri)))
                     {
-                        // Perform the rotation
-                        HRESULT hrWork = spri->Rotate();
-                        spri->put_Result(hrWork);
-                        // Send the manager thread the rotation item completed message
-                        PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ROTATED, GetCurrentThreadId(), u);
+                        HRESULT hrWork;
+                        spri->get_Result(&hrWork);
+                        // S_FALSE means we have not processed this item yet
+                        if (hrWork == S_FALSE)
+                        {
+                            // Perform the rotation
+                            hrWork = spri->Rotate();
+                            spri->put_Result(hrWork);
+                            // Send the manager thread the rotation item processed message
+                            PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ITEM_PROCESSED, GetCurrentThreadId(), u);
+                        }
                     }
                 }
             }
@@ -640,7 +660,7 @@ HRESULT CRotationManager::_Init()
 
 void CRotationManager::_ClearEventHandlers()
 {
-    AcquireSRWLockExclusive(&m_lockEvents);
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     // Cleanup event handlers
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
@@ -654,13 +674,11 @@ void CRotationManager::_ClearEventHandlers()
     }
 
     m_rotationManagerEvents.clear();
-
-    ReleaseSRWLockExclusive(&m_lockEvents);
 }
 
 void CRotationManager::_ClearRotationItems()
 {
-    AcquireSRWLockExclusive(&m_lockItems);
+    CSRWExclusiveAutoLock lock(&m_lockItems);
 
     // Cleanup rotation items
     for (std::vector<IRotationItem*>::iterator it = m_rotationItems.begin(); it != m_rotationItems.end(); ++it)
@@ -670,8 +688,6 @@ void CRotationManager::_ClearRotationItems()
     }
 
     m_rotationItems.clear();
-
-    ReleaseSRWLockExclusive(&m_lockItems);
 }
 
 void CRotationManager::_Cleanup()
@@ -690,6 +706,9 @@ void CRotationManager::_Cleanup()
 
     // Done with GDIPlus so shutdown now
     GdiplusShutdown(m_gdiplusToken);
+
+    _ClearEventHandlers();
+    _ClearRotationItems();
 }
 
 UINT CRotationManager::s_GetLogicalProcessorCount()

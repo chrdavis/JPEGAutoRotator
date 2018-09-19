@@ -44,8 +44,8 @@ public:
     IFACEMETHODIMP Close();
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnAdded(__in UINT uIndex);
-    IFACEMETHODIMP OnRotated(__in UINT uIndex);
+    IFACEMETHODIMP OnItemAdded(__in UINT uIndex);
+    IFACEMETHODIMP OnItemProcessed(__in UINT uIndex);
     IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
@@ -57,12 +57,11 @@ private:
 
     HRESULT _Initialize(__in IRotationManager* prm);
     void _Cleanup();
-    HRESULT _EnumerateDataObject();
+    HRESULT _EnumerateDataObject(__in IDataObject* pdo);
     HRESULT _ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth);
 
     long m_cRef;
     DWORD m_dwCookie;
-    CComPtr<IDataObject> m_spdo;
     CComPtr<IRotationManager> m_sprm;
     CComPtr<IProgressDialog> m_sppd;
 };
