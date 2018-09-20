@@ -209,7 +209,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:JPEGAutoRotatorInstaller64"
         "ProductCode" = "8:{1211A8B9-B6E6-4220-89F5-C066590A6950}"
-        "PackageCode" = "8:{B3E1D6A1-CDC4-4CF4-8B5D-E7B4A92A9BD7}"
+        "PackageCode" = "8:{AD7530C3-0FB9-4771-B276-3A70E2E53246}"
         "UpgradeCode" = "8:{6930F53A-E2E3-41F4-91A0-E455CA0286D1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -446,6 +446,70 @@
                     "Transitive" = "11:FALSE"
                         "Keys"
                         {
+                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_26FA1856AA8843B8A3329C434DF3ED4F"
+                            {
+                            "Name" = "8:Image"
+                            "Condition" = "8:"
+                            "AlwaysCreate" = "11:FALSE"
+                            "DeleteAtUninstall" = "11:FALSE"
+                            "Transitive" = "11:FALSE"
+                                "Keys"
+                                {
+                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_736CFAC1413D439FB04C7D0FD24BE74E"
+                                    {
+                                    "Name" = "8:ShellEx"
+                                    "Condition" = "8:"
+                                    "AlwaysCreate" = "11:FALSE"
+                                    "DeleteAtUninstall" = "11:FALSE"
+                                    "Transitive" = "11:FALSE"
+                                        "Keys"
+                                        {
+                                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_2B6342A22CC74558811937E358D0AF84"
+                                            {
+                                            "Name" = "8:ContextMenuHandlers"
+                                            "Condition" = "8:"
+                                            "AlwaysCreate" = "11:FALSE"
+                                            "DeleteAtUninstall" = "11:FALSE"
+                                            "Transitive" = "11:FALSE"
+                                                "Keys"
+                                                {
+                                                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_2EB7647CB8124DEDAB8070AD153A97AA"
+                                                    {
+                                                    "Name" = "8:JPEGAutoRotatorExt"
+                                                    "Condition" = "8:"
+                                                    "AlwaysCreate" = "11:FALSE"
+                                                    "DeleteAtUninstall" = "11:FALSE"
+                                                    "Transitive" = "11:FALSE"
+                                                        "Keys"
+                                                        {
+                                                        }
+                                                        "Values"
+                                                        {
+                                                            "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_3CA405DBC2BC467FA46E0D02E9D12F41"
+                                                            {
+                                                            "Name" = "8:"
+                                                            "Condition" = "8:"
+                                                            "Transitive" = "11:FALSE"
+                                                            "ValueTypes" = "3:1"
+                                                            "Value" = "8:{1AC8EAF1-9A6A-471C-B87B-B1DF2B8EA62F}"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                "Values"
+                                                {
+                                                }
+                                            }
+                                        }
+                                        "Values"
+                                        {
+                                        }
+                                    }
+                                }
+                                "Values"
+                                {
+                                }
+                            }
                             "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_E6BA082D44D24F57A8E6D78DD0514C4C"
                             {
                             "Name" = "8:Directory.Image"
