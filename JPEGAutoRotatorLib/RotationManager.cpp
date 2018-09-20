@@ -473,7 +473,7 @@ HRESULT CRotationManager::_PerformRotation()
             }
 
             MSG msg;
-            while(PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
             {
                 // If we got the "operation complete" message
                 if (msg.message == ROTM_ENDTHREAD)

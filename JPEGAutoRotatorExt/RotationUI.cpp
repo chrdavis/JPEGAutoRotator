@@ -5,6 +5,7 @@
 #include "resource.h"
 
 extern HINSTANCE g_hInst;
+extern HWND g_hwndParent;
 
 // Rotation UI
 CRotationUI::CRotationUI() :
@@ -42,6 +43,8 @@ IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
 
 IFACEMETHODIMP CRotationUI::Start()
 {
+    // Start progress dialog
+    m_sppd->StartProgressDialog(g_hwndParent, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
 
     // Initialize progress dialog 
     WCHAR szResource[100] = { 0 };
@@ -50,17 +53,10 @@ IFACEMETHODIMP CRotationUI::Start()
     LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
     m_sppd->SetCancelMsg(szResource, nullptr);
 
-    // Start progress dialog
-    m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
-
     // Start operation.  Here we will block but we should get reentered in our event callback.
     // That way we can update the progress dialog, check the cancel state and notify the 
     // manager if we want to cancel.
-    HRESULT hr = m_sprm->Start();
-
-    m_sppd->StopProgressDialog();
-
-    return hr;
+    return m_sprm->Start();
 }
 
 IFACEMETHODIMP CRotationUI::Close()
