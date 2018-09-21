@@ -66,7 +66,6 @@ HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
     if ((IS_INTRESOURCE(pici->lpVerb)) &&
         (LOWORD(pici->lpVerb) == 0))
     {
-        g_hwndParent = pici->hwnd;
         IStream* pstrm = nullptr;
         if (SUCCEEDED(CoMarshalInterThreadInterfaceInStream(__uuidof(m_spdo), m_spdo, &pstrm)))
         {

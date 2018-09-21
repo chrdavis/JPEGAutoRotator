@@ -6,7 +6,6 @@
 #include "resource.h"
 
 extern HINSTANCE g_hInst;
-extern HWND g_hwndParent;
 
 CRotationUI::CRotationUI()
 {

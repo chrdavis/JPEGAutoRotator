@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "RotationManager.h"
+#include "helpers.h"
 #include <gdiplus.h>
 
 extern void DllAddRef();
@@ -432,6 +433,58 @@ IFACEMETHODIMP CRotationManager::OnCompleted()
     return S_OK;
 }
 
+IFACEMETHODIMP CRotationManager::get_MaxWorkerThreadCount(__out UINT* puMaxThreadCount)
+{
+    *puMaxThreadCount = m_uMaxWorkerThreadCount;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_MaxWorkerThreadCount(__in UINT uMaxThreadCount)
+{
+    m_diagnosticsMode = true;
+    m_uMaxWorkerThreadCount = uMaxThreadCount;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::get_WorkerThreadCount(__out UINT* puThreadCount)
+{
+    *puThreadCount = m_uWorkerThreadCount;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_WorkerThreadCount(__in UINT uThreadCount)
+{
+    m_diagnosticsMode = true;
+    m_uWorkerThreadCount = uThreadCount;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::get_MinItemsPerWorkerThread(__out UINT* puMinItemsPerThread)
+{
+    *puMinItemsPerThread = m_uMinItemsPerWorkerThread;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_MinItemsPerWorkerThread(__in UINT uMinItemsPerThread)
+{
+    m_diagnosticsMode = true;
+    m_uMinItemsPerWorkerThread = uMinItemsPerThread;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::get_ItemsPerWorkerThread(__out UINT* puNumItemsPerThread)
+{
+    *puNumItemsPerThread = m_uItemsPerWorkerThread;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_ItemsPerWorkerThread(__in UINT uNumItemsPerThread)
+{
+    m_diagnosticsMode = true;
+    m_uItemsPerWorkerThread = uNumItemsPerThread;
+    return S_OK;
+}
+
 HRESULT CRotationManager::s_CreateInstance(__deref_out IRotationManager** pprm)
 {
     *pprm = nullptr;
@@ -456,36 +509,37 @@ HRESULT CRotationManager::_PerformRotation()
     HRESULT hr = _CreateWorkerThreads();
     if (SUCCEEDED(hr))
     {
-        UINT uCompleted = 0;
-        UINT uTotalItems = static_cast<UINT>(m_rotationItems.size());
+        UINT uProcessedCount = 0;
+        UINT uTotalItems = 0;
+        UINT uThreadCompleteCount = 0;
+        GetItemCount(&uTotalItems);
 
         ResetEvent(m_hCancelEvent);
+
         // Signal the worker thread that they can start working. We needed to wait until we
         // were ready to process thread messages.
         SetEvent(m_hStartEvent);
-        bool fDone = false;
-        while (!fDone)
+        
+        while (true)
         {
             // Check if all running threads have exited
-            if (WaitForMultipleObjects(m_uWorkerThreadCount, m_workerThreadHandles, TRUE, 10) == WAIT_OBJECT_0)
+            if (WaitForMultipleObjects(m_uWorkerThreadCount, m_workerThreadHandles, TRUE, 0) == WAIT_OBJECT_0)
             {
-                fDone = true;
+                // Ensure we process remaining messages from worker threads
+                if (uThreadCompleteCount == m_uWorkerThreadCount)
+                {
+                    break;
+                }
             }
 
             MSG msg;
             while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
             {
-                // If we got the "operation complete" message
-                if (msg.message == ROTM_ENDTHREAD)
+                if (msg.message == ROTM_ROTI_ITEM_PROCESSED)
                 {
-                    // Break out of the loop and end the thread
-                    fDone = true;
-                }
-                else if (msg.message == ROTM_ROTI_ITEM_PROCESSED)
-                {
-                    uCompleted++;
+                    uProcessedCount++;
                     OnItemProcessed(static_cast<UINT>(msg.lParam));
-                    OnProgress(uCompleted, uTotalItems);
+                    OnProgress(uProcessedCount, uTotalItems);
                 }
                 else if (msg.message == ROTM_ROTI_CANCELED)
                 {
@@ -493,9 +547,10 @@ HRESULT CRotationManager::_PerformRotation()
                 }
                 else if (msg.message == ROTM_ROTI_COMPLETE)
                 {
+                    uThreadCompleteCount++;
                     // Worker thread completed
-                    // Break out of the loop and end the thread
-                    fDone = true;
+                    // Break out of the loop and check if all threads are done
+                    break;
                 }
                 else
                 {
@@ -513,37 +568,13 @@ HRESULT CRotationManager::_PerformRotation()
 
 HRESULT CRotationManager::_CreateWorkerThreads()
 {
-    UINT uMaxWorkerThreads = min(s_GetLogicalProcessorCount(), MAX_ROTATION_WORKER_THREADS);
-    UINT uTotalItems = static_cast<UINT>(m_rotationItems.size());
-
-    HRESULT hr = (uTotalItems > 0) ? S_OK : E_FAIL;
+    HRESULT hr = _GetWorkerThreadDimensions();
     if (SUCCEEDED(hr))
     {
-        // Determine the best number of threads based on the number of items to rotate
-        // and our minimum number of items per worker thread
-
-        // How many work item sized amounts of items do we have?
-        UINT uTotalWorkItems = max(1, (uTotalItems / MIN_ROTATION_WORK_SIZE));
-
-        // How many worker threads do we require, with a minimum being the max worker threads value
-        UINT uIdealWorkerThreadCount = (uTotalWorkItems / uMaxWorkerThreads);
-        if ((uTotalWorkItems % uMaxWorkerThreads) > 0)
-        {
-            uIdealWorkerThreadCount++;
-        }
-
-        // Ensure we don't exceed uMaxWorkerThreads
-        m_uWorkerThreadCount = min(uIdealWorkerThreadCount, uMaxWorkerThreads);
-
-        // Now determine the number of items per worker
-        UINT uItemsPerWorker = (uTotalItems / m_uWorkerThreadCount);
-        if (uItemsPerWorker == 0)
-        {
-            uItemsPerWorker = uTotalItems % m_uWorkerThreadCount;
-        }
-
         UINT uFirstIndex = 0;
-        UINT uLastIndex = uItemsPerWorker;
+        UINT uLastIndex = m_uItemsPerWorkerThread;
+        UINT uTotalItems = 0;
+        GetItemCount(&uTotalItems);
 
         // Create the worker threads
         for (UINT u = 0; SUCCEEDED(hr) && u < m_uWorkerThreadCount; u++)
@@ -565,7 +596,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 {
                     // increment the indices for the next thread
                     uFirstIndex = ++uLastIndex;
-                    uLastIndex = min((uFirstIndex + uItemsPerWorker), uTotalItems - 1);
+                    uLastIndex = min((uFirstIndex + m_uItemsPerWorkerThread), uTotalItems - 1);
                 }
                 else
                 {
@@ -577,6 +608,45 @@ HRESULT CRotationManager::_CreateWorkerThreads()
         if (FAILED(hr))
         {
             Cancel();
+        }
+    }
+
+    return hr;
+}
+
+HRESULT CRotationManager::_GetWorkerThreadDimensions()
+{
+    UINT uMaxWorkerThreads = min(GetLogicalProcessorCount(), MAX_ROTATION_WORKER_THREADS);
+    UINT uTotalItems = 0;
+    HRESULT hr = GetItemCount(&uTotalItems);
+    if (SUCCEEDED(hr))
+    {
+        hr = (uTotalItems > 0) ? S_OK : E_FAIL;
+        // Ensure we have items and we are not in diagnostics mode which sets the values calculated below
+        if (SUCCEEDED(hr) && !m_diagnosticsMode)
+        {
+            // Determine the best number of threads based on the number of items to rotate
+            // and our minimum number of items per worker thread
+
+            // How many work item sized amounts of items do we have?
+            UINT uTotalWorkItems = max(1, (uTotalItems / MIN_ROTATION_WORK_SIZE));
+
+            // How many worker threads do we require, with a minimum being the max worker threads value
+            UINT uIdealWorkerThreadCount = (uTotalWorkItems / uMaxWorkerThreads);
+            if ((uTotalWorkItems % uMaxWorkerThreads) > 0)
+            {
+                uIdealWorkerThreadCount++;
+            }
+
+            // Ensure we don't exceed uMaxWorkerThreads
+            m_uWorkerThreadCount = min(uIdealWorkerThreadCount, uMaxWorkerThreads);
+
+            // Now determine the number of items per worker
+            m_uItemsPerWorkerThread = (uTotalItems / m_uWorkerThreadCount);
+            if (m_uItemsPerWorkerThread == 0)
+            {
+                m_uItemsPerWorkerThread = uTotalItems % m_uWorkerThreadCount;
+            }
         }
     }
 
@@ -709,9 +779,3 @@ void CRotationManager::_Cleanup()
     _ClearRotationItems();
 }
 
-UINT CRotationManager::s_GetLogicalProcessorCount()
-{
-    SYSTEM_INFO sysinfo;
-    GetSystemInfo(&sysinfo);
-    return sysinfo.dwNumberOfProcessors;
-}

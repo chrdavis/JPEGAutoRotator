@@ -81,3 +81,10 @@ HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, __in IRotati
 
     return hr;
 }
+
+UINT GetLogicalProcessorCount()
+{
+    SYSTEM_INFO sysinfo;
+    GetSystemInfo(&sysinfo);
+    return sysinfo.dwNumberOfProcessors;
+}

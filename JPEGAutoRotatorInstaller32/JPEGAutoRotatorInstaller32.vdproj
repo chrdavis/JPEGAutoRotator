@@ -181,7 +181,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:JPEGAutoRotatorInstaller32"
+        "ProductName" = "8:JPEGAutoRotator"
         "ProductCode" = "8:{C6B9E539-14E7-4D83-AC7A-2142C10E33FC}"
         "PackageCode" = "8:{77D8559E-3E04-4202-A758-D6532A5CF03F}"
         "UpgradeCode" = "8:{B7D2A3A2-FBD7-4C2C-988F-B2764A2FC774}"
@@ -191,7 +191,7 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:Chris"
+        "Manufacturer" = "8:Chris Davis"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:JPEGAutoRotatorInstaller32"

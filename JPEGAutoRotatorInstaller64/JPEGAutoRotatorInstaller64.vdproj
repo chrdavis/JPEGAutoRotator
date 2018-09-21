@@ -171,7 +171,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_C4970F61FF3B436ABBFC21F0A928DE2A"
             {
-            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -207,7 +207,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:JPEGAutoRotatorInstaller64"
+        "ProductName" = "8:JPEGAutoRotator"
         "ProductCode" = "8:{1211A8B9-B6E6-4220-89F5-C066590A6950}"
         "PackageCode" = "8:{AD7530C3-0FB9-4771-B276-3A70E2E53246}"
         "UpgradeCode" = "8:{6930F53A-E2E3-41F4-91A0-E455CA0286D1}"
@@ -217,7 +217,7 @@
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
         "ProductVersion" = "8:1.0.0"
-        "Manufacturer" = "8:Chris"
+        "Manufacturer" = "8:Chris Davis"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
         "Title" = "8:JPEGAutoRotatorInstaller64"

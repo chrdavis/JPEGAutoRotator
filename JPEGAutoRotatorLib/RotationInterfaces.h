@@ -36,6 +36,23 @@ public:
     IFACEMETHOD(AddItem)(__in IRotationItem* pri) = 0;
     IFACEMETHOD(GetItem)(__in UINT uIndex, __deref_out IRotationItem** ppri) = 0;
     IFACEMETHOD(GetItemCount)(__out UINT* puCount) = 0;
+    IFACEMETHOD(get_WorkerThreadCount)(__out UINT* puThreadCount) = 0;
+    IFACEMETHOD(put_WorkerThreadCount)(__in UINT uThreadCount) = 0;
+    IFACEMETHOD(get_ItemsPerWorkerThread)(__out UINT* numItemsPerThread) = 0;
+    IFACEMETHOD(put_ItemsPerWorkerThread)(__in UINT numItemsPerThread) = 0;
+};
+
+interface __declspec(uuid("D1952AE2-93FF-4C5D-9AC5-C6DADBEDE242")) IRotationManagerDiagnostics : public IUnknown
+{
+public:
+    IFACEMETHOD(get_MaxWorkerThreadCount)(__out UINT* puMaxThreadCount) = 0;
+    IFACEMETHOD(put_MaxWorkerThreadCount)(__in UINT uMaxThreadCount) = 0;
+    IFACEMETHOD(get_WorkerThreadCount)(__out UINT* puThreadCount) = 0;
+    IFACEMETHOD(put_WorkerThreadCount)(__in UINT uThreadCount) = 0;
+    IFACEMETHOD(get_MinItemsPerWorkerThread)(__out UINT* puMinItemsPerThread) = 0;
+    IFACEMETHOD(put_MinItemsPerWorkerThread)(__in UINT uMinItemsPerThread) = 0;
+    IFACEMETHOD(get_ItemsPerWorkerThread)(__out UINT* puNumItemsPerThread) = 0;
+    IFACEMETHOD(put_ItemsPerWorkerThread)(__in UINT uNumItemsPerThread) = 0;
 };
 
 interface __declspec(uuid("39EEEC7B-81B4-4719-90E1-37D70059724C")) IRotationUI : public IUnknown
