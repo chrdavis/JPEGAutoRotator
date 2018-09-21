@@ -20,4 +20,5 @@ void DllRelease();
 // {1AC8EAF1-9A6A-471C-B87B-B1DF2B8EA62F}
 DEFINE_GUID(CLSID_JPEGAutoRotatorMenu, 0x1AC8EAF1, 0x9A6A, 0x471C, 0xB8, 0x7B, 0xB1, 0xDF, 0x2B, 0x8E, 0xA6, 0x2F);
 
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 

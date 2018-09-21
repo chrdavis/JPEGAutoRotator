@@ -599,7 +599,7 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
                     // Check if cancel event is signaled
                     if (WaitForSingleObject(prwtd->hCancelEvent, 0) == WAIT_OBJECT_0)
                     {
-                        // Cancelled from manager
+                        // Canceled from manager
                         // Send the manager thread the canceled message
                         PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_CANCELED, GetCurrentThreadId(), 0);
                         break;

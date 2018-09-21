@@ -67,7 +67,8 @@ private:
 
 // Maximum number of running worker threads
 // We should never exceed the number of logical processors
-#define MAX_ROTATION_WORKER_THREADS 64
+// TODO: setting this to 1 for testing for now
+#define MAX_ROTATION_WORKER_THREADS 1
 
 // Minimum amount of work to schedule to a worker thread
 #define MIN_ROTATION_WORK_SIZE 5

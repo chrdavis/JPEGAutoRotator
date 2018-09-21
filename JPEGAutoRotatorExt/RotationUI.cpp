@@ -7,10 +7,7 @@
 extern HINSTANCE g_hInst;
 extern HWND g_hwndParent;
 
-// Rotation UI
-CRotationUI::CRotationUI() :
-    m_cRef(1),
-    m_dwCookie(0)
+CRotationUI::CRotationUI()
 {
 }
 
@@ -43,6 +40,29 @@ IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
 
 IFACEMETHODIMP CRotationUI::Start()
 {
+    // Create worker window
+
+    WNDCLASS wc = { 0 };
+    LPWSTR pszClass = L"WorkerW";
+
+    wc.lpfnWndProc = DefWindowProc;
+    wc.cbWndExtra = sizeof(void *);
+    wc.hInstance = g_hInst;
+    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+    wc.lpszClassName = pszClass;
+
+    RegisterClassW(&wc);
+
+    m_hwndWorker = CreateWindowEx(
+        0, pszClass, nullptr, 0,
+        0, 0, 0, 0, 0,
+        (HMENU)0, g_hInst, nullptr);
+    if (m_hwndWorker)
+    {
+        SetWindowLongPtr(m_hwndWorker, 0, (LONG_PTR)p);
+        SetWindowLongPtrW(m_hwndWorker, GWLP_WNDPROC, (LONG_PTR)pfnWndProc);
+    }
+
     // Start progress dialog
     m_sppd->StartProgressDialog(g_hwndParent, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
 

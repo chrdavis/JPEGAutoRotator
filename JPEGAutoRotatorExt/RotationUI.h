@@ -58,8 +58,9 @@ private:
     HRESULT _Initialize(__in IRotationManager* prm);
     void _Cleanup();
 
-    long m_cRef;
-    DWORD m_dwCookie;
+    HWND m_hwndWorker = 0;
+    long m_cRef = 1;
+    DWORD m_dwCookie = 0;
     CComPtr<IRotationManager> m_sprm;
     CComPtr<IProgressDialog> m_sppd;
 };
