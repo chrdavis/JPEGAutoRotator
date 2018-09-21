@@ -57,10 +57,12 @@ private:
 
     HRESULT _Initialize(__in IRotationManager* prm);
     void _Cleanup();
+    void _CheckIfCanceled();
 
     HWND m_hwndWorker = 0;
     long m_cRef = 1;
     DWORD m_dwCookie = 0;
     CComPtr<IRotationManager> m_sprm;
     CComPtr<IProgressDialog> m_sppd;
+    CComPtr<IDataObject> m_spdo;
 };

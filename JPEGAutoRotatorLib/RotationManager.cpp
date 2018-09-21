@@ -503,9 +503,9 @@ HRESULT CRotationManager::_PerformRotation()
                     DispatchMessage(&msg);
                 }
             }
-
-            OnCompleted();
         }
+
+        OnCompleted();
     }
 
     return 0;

@@ -2,6 +2,7 @@
 #include "RotationUI.h"
 #include "RotationManager.h"
 #include "Helpers.h"
+#include <strsafe.h>
 #include "resource.h"
 
 extern HINSTANCE g_hInst;
@@ -35,48 +36,45 @@ HRESULT CRotationUI::s_CreateInstance(__in IRotationManager* prm, __deref_out IR
 // IRotationUI
 IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
 {
-    return EnumerateDataObject(pdo, m_sprm);
+    m_spdo = pdo;
+    return S_OK;
 }
 
 IFACEMETHODIMP CRotationUI::Start()
 {
-    // Create worker window
-
-    WNDCLASS wc = { 0 };
-    LPWSTR pszClass = L"WorkerW";
-
-    wc.lpfnWndProc = DefWindowProc;
-    wc.cbWndExtra = sizeof(void *);
-    wc.hInstance = g_hInst;
-    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-    wc.lpszClassName = pszClass;
-
-    RegisterClassW(&wc);
-
-    m_hwndWorker = CreateWindowEx(
-        0, pszClass, nullptr, 0,
-        0, 0, 0, 0, 0,
-        (HMENU)0, g_hInst, nullptr);
-    if (m_hwndWorker)
+    HRESULT hr = E_FAIL;
+    if (m_spdo)
     {
-        SetWindowLongPtr(m_hwndWorker, 0, (LONG_PTR)p);
-        SetWindowLongPtrW(m_hwndWorker, GWLP_WNDPROC, (LONG_PTR)pfnWndProc);
+        // Initialize progress dialog 
+        WCHAR szResource[100] = { 0 };
+        LoadString(g_hInst, IDS_AUTOROTATOR, szResource, ARRAYSIZE(szResource));
+        m_sppd->SetTitle(szResource);
+        LoadString(g_hInst, IDS_LOADING, szResource, ARRAYSIZE(szResource));
+        m_sppd->SetLine(1, szResource, FALSE, nullptr);
+        LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
+        m_sppd->SetCancelMsg(szResource, nullptr);
+
+        // Start progress dialog
+        m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_MODAL | PROGDLG_AUTOTIME, nullptr);
+
+        // Enumerate the data object and add all items to the rotation manager
+        EnumerateDataObject(m_spdo, m_sprm);
+
+        // Update progress dialog line to show we are now rotating
+        LoadString(g_hInst, IDS_AUTOROTATING, szResource, ARRAYSIZE(szResource));
+        m_sppd->SetLine(1, szResource, FALSE, nullptr);
+
+        // Start operation.  Here we will block but we should get reentered in our event callback.
+        // That way we can update the progress dialog, check the cancel state and notify the 
+        // manager if we want to cancel.
+        hr = m_sprm->Start();
+
+        if (m_sppd)
+        {
+            m_sppd->StopProgressDialog();
+        }
     }
-
-    // Start progress dialog
-    m_sppd->StartProgressDialog(g_hwndParent, nullptr, PROGDLG_NORMAL | PROGDLG_AUTOTIME, nullptr);
-
-    // Initialize progress dialog 
-    WCHAR szResource[100] = { 0 };
-    LoadString(g_hInst, IDS_AUTOROTATING, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetTitle(szResource);
-    LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetCancelMsg(szResource, nullptr);
-
-    // Start operation.  Here we will block but we should get reentered in our event callback.
-    // That way we can update the progress dialog, check the cancel state and notify the 
-    // manager if we want to cancel.
-    return m_sprm->Start();
+    return hr;
 }
 
 IFACEMETHODIMP CRotationUI::Close()
@@ -89,11 +87,14 @@ IFACEMETHODIMP CRotationUI::Close()
 // IRotationManagerEvents
 IFACEMETHODIMP CRotationUI::OnItemAdded(__in UINT)
 {
+    _CheckIfCanceled();
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
 {
+    _CheckIfCanceled();
+
     // Update the item in our list view
     if (m_sprm)
     {
@@ -119,8 +120,17 @@ IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
 
 IFACEMETHODIMP CRotationUI::OnProgress(__in UINT uCompleted, __in UINT uTotal)
 {
+    _CheckIfCanceled();
+
     if (m_sppd)
     {
+        WCHAR szProgress[100] = { 0 };
+        WCHAR szResource[100] = { 0 };
+        LoadString(g_hInst, IDS_ROTATEPROGRESS, szResource, ARRAYSIZE(szResource));
+        if (SUCCEEDED(StringCchPrintf(szProgress, ARRAYSIZE(szProgress), szResource, uCompleted, uTotal)))
+        {
+            m_sppd->SetLine(2, szProgress, FALSE, nullptr);
+        }
         m_sppd->SetProgress(uCompleted, uTotal);
     }
     return S_OK;
@@ -165,6 +175,15 @@ HRESULT CRotationUI::_Initialize(__in IRotationManager* prm)
     }
 
     return hr;
+}
+
+void CRotationUI::_CheckIfCanceled()
+{
+    // Check if the user canceled from the progress dialog
+    if (m_sprm && m_sppd && m_sppd->HasUserCancelled())
+    {
+        m_sprm->Cancel();
+    }
 }
 
 void CRotationUI::_Cleanup()
