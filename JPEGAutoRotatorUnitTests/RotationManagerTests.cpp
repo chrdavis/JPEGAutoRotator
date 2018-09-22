@@ -45,11 +45,11 @@ namespace JPEGAutoRotatorUnitTests
         TEST_METHOD(RotateAllConfigurationsTest)
         {
             // Get test file source folder
-            wchar_t testFolderSource[MAX_PATH];
+            wchar_t testFolderSource[MAX_PATH] = { 0 };
             Assert::IsTrue(GetTestFolderPath(JPEGWITHEXIFROTATION_TESTFOLDER, ARRAYSIZE(testFolderSource), testFolderSource));
             
             // Get test file working folder
-            wchar_t testFolderWorking[MAX_PATH];
+            wchar_t testFolderWorking[MAX_PATH] = { 0 };
             Assert::IsTrue(GetTestFolderPath(L"RotateAllConfigurationsTest", ARRAYSIZE(testFolderWorking), testFolderWorking));
 
             // Ensure test file working folder doesn't exist
