@@ -63,14 +63,18 @@ HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, __in IRotati
                     hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszPath);
                     if (SUCCEEDED(hr))
                     {
-                        // TODO: use a factor or restructure code to allow a different IRotationItem implementation
-                        CComPtr<IRotationItem> spriNew;
-                        hr = CRotationItem::s_CreateInstance(pszPath, &spriNew);
-                        if (SUCCEEDED(hr))
+                        // Check if this is in fact a JPEG so we don't add items needlessly
+                        PCWSTR pszExt = PathFindExtension(pszPath);
+                        if (pszExt && (StrCmpI(pszExt, L".jpeg") == 0 || StrCmpI(pszExt, L".jpg") == 0))
                         {
-                            hr = prm->AddItem(spriNew);
+                            // TODO: use a factor or restructure code to allow a different IRotationItem implementation
+                            CComPtr<IRotationItem> spriNew;
+                            hr = CRotationItem::s_CreateInstance(pszPath, &spriNew);
+                            if (SUCCEEDED(hr))
+                            {
+                                hr = prm->AddItem(spriNew);
+                            }
                         }
-
                         CoTaskMemFree(pszPath);
                     }
                 }
