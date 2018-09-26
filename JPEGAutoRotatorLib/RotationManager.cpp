@@ -357,6 +357,24 @@ IFACEMETHODIMP CRotationManager::GetItemCount(_Out_ UINT* puCount)
     return S_OK;
 }
 
+IFACEMETHODIMP CRotationManager::SetRotationItemFactory(_In_ IRotationItemFactory* prif)
+{
+    m_sprif = prif;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::GetRotationItemFactory(_In_ IRotationItemFactory** pprif)
+{
+    HRESULT hr = E_FAIL;
+    if (m_sprif)
+    {
+        hr = S_OK;
+        *pprif = m_sprif;
+        (*pprif)->AddRef();
+    }
+    return hr;
+}
+
 // IRotationManagerEvents
 IFACEMETHODIMP CRotationManager::OnItemAdded(_In_ UINT uIndex)
 {
@@ -718,6 +736,17 @@ HRESULT CRotationManager::_Init()
     m_hCancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
     HRESULT hr = (m_hStartEvent && m_hCancelEvent) ? S_OK : E_FAIL;
+    if (SUCCEEDED(hr))
+    {
+        // Create the default IRotationItemFactory
+        CComPtr<IRotationItem> spri;
+        hr = CRotationItem::s_CreateInstance(L"", &spri);
+        if (SUCCEEDED(hr))
+        {
+            hr = spri->QueryInterface(IID_PPV_ARGS(&m_sprif));
+        }
+    }
+
     if (FAILED(hr))
     {
         _Cleanup();

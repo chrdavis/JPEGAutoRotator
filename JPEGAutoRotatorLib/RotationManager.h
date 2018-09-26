@@ -4,7 +4,9 @@
 #include <vector>
 #include "srwlock.h"
 
-class CRotationItem : public IRotationItem
+class __declspec(uuid("{FFB76FF1-DE4B-459A-A6C7-025392CFDA53}")) CRotationItem :
+    public IRotationItem,
+    public IRotationItemFactory
 {
 public:
     CRotationItem();
@@ -15,6 +17,7 @@ public:
         static const QITAB qit[] =
         {
             QITABENT(CRotationItem, IRotationItem),
+            QITABENT(CRotationItem, IRotationItemFactory),
             { 0, 0 },
         };
         return QISearch(this, qit, riid, ppv);
@@ -35,6 +38,7 @@ public:
         return cRef;
     }
 
+    // IRotationItem
     IFACEMETHODIMP get_Path(_Outptr_ PWSTR* ppszPath);
     IFACEMETHODIMP put_Path(_In_ PCWSTR pszPath);
     IFACEMETHODIMP get_WasRotated(_Out_ BOOL* pfWasRotated);
@@ -44,6 +48,12 @@ public:
     IFACEMETHODIMP get_Result(_Out_ HRESULT* phrResult);
     IFACEMETHODIMP put_Result(_In_ HRESULT hrResult);
     IFACEMETHODIMP Rotate();
+
+    // IRotationItemFactory
+    IFACEMETHODIMP Create(_COM_Outptr_ IRotationItem** ppri)
+    {
+        return CRotationItem::s_CreateInstance(L"", ppri);
+    }
 
     static HRESULT s_CreateInstance(_In_ PCWSTR pszPath, _COM_Outptr_ IRotationItem** ppri);
 
@@ -62,12 +72,8 @@ private:
     static UINT s_uTagOrientationPropSize;
 };
 
-// TODO: Consider modifying the below or making them customizable via the interface.  We will likely want to control
-// TODO: these from unit tests.
-
 // Maximum number of running worker threads
 // We should never exceed the number of logical processors
-// TODO: setting this to 1 for testing for now
 #define MAX_ROTATION_WORKER_THREADS 64
 
 // Minimum amount of work to schedule to a worker thread
@@ -118,6 +124,8 @@ public:
     IFACEMETHODIMP AddItem(_In_ IRotationItem* pri);
     IFACEMETHODIMP GetItem(_In_ UINT uIndex, _COM_Outptr_ IRotationItem** ppri);
     IFACEMETHODIMP GetItemCount(_Out_ UINT* puCount);
+    IFACEMETHODIMP SetRotationItemFactory(_In_ IRotationItemFactory* prif);
+    IFACEMETHODIMP GetRotationItemFactory(_In_ IRotationItemFactory** pprif);
 
     // IRotationManagerDiagnostics
     IFACEMETHODIMP get_MaxWorkerThreadCount(_Out_ UINT* puMaxThreadCount);
@@ -182,6 +190,7 @@ private:
     DWORD m_dwCookie = 0;
     CSRWLock m_lockEvents;
     CSRWLock m_lockItems;
+    CComPtr<IRotationItemFactory> m_sprif;
     _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENT> m_rotationManagerEvents;
     _Guarded_by_(m_lockItems) std::vector<IRotationItem*> m_rotationItems;
 };

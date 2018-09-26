@@ -12,6 +12,7 @@ extern HINSTANCE g_hInstance;
 
 namespace JPEGAutoRotatorUnitTests
 {
+    // Test file names. These have all the possible exif rotation values
     PCWSTR g_rgTestJPEGFiles[] =
     {
         L"Landscape_1.jpg",

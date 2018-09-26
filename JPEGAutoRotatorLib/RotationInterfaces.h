@@ -15,6 +15,12 @@ public:
     IFACEMETHOD(Rotate)() = 0;
 };
 
+interface __declspec(uuid("9A0D1E02-DAC8-4464-B483-193AEF022478")) IRotationItemFactory : public IUnknown
+{
+public:
+    IFACEMETHOD(Create)(_COM_Outptr_ IRotationItem** ppri) = 0;
+};
+
 interface __declspec(uuid("1FB14328-E681-4BC2-B947-00BAC0387A01")) IRotationManagerEvents : public IUnknown
 {
 public:
@@ -40,6 +46,8 @@ public:
     IFACEMETHOD(put_WorkerThreadCount)(_In_ UINT uThreadCount) = 0;
     IFACEMETHOD(get_ItemsPerWorkerThread)(_Out_ UINT* numItemsPerThread) = 0;
     IFACEMETHOD(put_ItemsPerWorkerThread)(_In_ UINT numItemsPerThread) = 0;
+    IFACEMETHOD(GetRotationItemFactory)(_In_ IRotationItemFactory** pprif) = 0;
+    IFACEMETHOD(SetRotationItemFactory)(_In_ IRotationItemFactory* prif) = 0;
 };
 
 interface __declspec(uuid("D1952AE2-93FF-4C5D-9AC5-C6DADBEDE242")) IRotationManagerDiagnostics : public IUnknown

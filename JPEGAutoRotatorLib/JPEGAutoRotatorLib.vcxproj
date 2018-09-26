@@ -140,9 +140,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="RotationInterfaces.h" />
     <ClInclude Include="RotationManager.h" />
