@@ -1,17 +1,17 @@
 #include "stdafx.h"
 
-HINSTANCE g_hInstance;
+HINSTANCE g_hInst;
 
 BOOL WINAPI DllMain(_In_ HINSTANCE hInstance, _In_ DWORD, _In_ void*)
 {
-    g_hInstance = hInstance;
+    g_hInst = hInstance;
     return TRUE;
 }
 
 bool GetCurrentFolderPath(_In_ UINT count, _Out_ PWSTR path)
 {
     bool ret = false;
-    if (GetModuleFileName(g_hInstance, path, count))
+    if (GetModuleFileName(g_hInst, path, count))
     {
         PathRemoveFileSpec(path);
         ret = true;

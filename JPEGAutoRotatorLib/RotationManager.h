@@ -4,7 +4,7 @@
 #include <vector>
 #include "srwlock.h"
 
-class __declspec(uuid("{FFB76FF1-DE4B-459A-A6C7-025392CFDA53}")) CRotationItem :
+class CRotationItem :
     public IRotationItem,
     public IRotationItemFactory
 {

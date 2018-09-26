@@ -8,7 +8,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 constexpr auto JPEGWITHEXIFROTATION_TESTFOLDER = L"TestFiles\\JPEGWithExifRotation\\";
 
-extern HINSTANCE g_hInstance;
+extern HINSTANCE g_hInst;
 
 namespace JPEGAutoRotatorUnitTests
 {
@@ -71,6 +71,7 @@ namespace JPEGAutoRotatorUnitTests
                 Assert::IsTrue(spRotationManager->AddItem(spRotationItem) == S_OK);
             }
 
+            // TODO: Need to update UI interfaces/impl so we don't have to provide a IDataObject to enumerate
             Assert::IsTrue(spRotationManager->Start() == S_OK);
 
             // TODO: Verify rotation happened as it should?
