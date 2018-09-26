@@ -21,7 +21,7 @@ CJPEGAutoRotatorMenu::~CJPEGAutoRotatorMenu()
     DllRelease();
 }
 
-HRESULT CJPEGAutoRotatorMenu::s_CreateInstance(__in_opt IUnknown*, __in REFIID riid, __out void **ppv)
+HRESULT CJPEGAutoRotatorMenu::s_CreateInstance(_In_opt_ IUnknown*, _In_ REFIID riid, _Out_ void **ppv)
 {
     HRESULT hr = E_OUTOFMEMORY;
     CJPEGAutoRotatorMenu *pprm = new CJPEGAutoRotatorMenu();
@@ -34,7 +34,7 @@ HRESULT CJPEGAutoRotatorMenu::s_CreateInstance(__in_opt IUnknown*, __in REFIID r
 }
 
 // IShellExtInit
-HRESULT CJPEGAutoRotatorMenu::Initialize(__in_opt PCIDLIST_ABSOLUTE, __in IDataObject *pdtobj, HKEY)
+HRESULT CJPEGAutoRotatorMenu::Initialize(_In_opt_ PCIDLIST_ABSOLUTE, _In_ IDataObject *pdtobj, HKEY)
 {
     // Cache the data object to be used later
     m_spdo = pdtobj;
@@ -59,7 +59,7 @@ HRESULT CJPEGAutoRotatorMenu::QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uI
     return hr;
 }
 
-HRESULT CJPEGAutoRotatorMenu::InvokeCommand(__in LPCMINVOKECOMMANDINFO pici)
+HRESULT CJPEGAutoRotatorMenu::InvokeCommand(_In_ LPCMINVOKECOMMANDINFO pici)
 {
     HRESULT hr = E_FAIL;
 

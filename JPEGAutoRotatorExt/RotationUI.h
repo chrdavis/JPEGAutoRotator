@@ -12,7 +12,7 @@ public:
     CRotationUI();
 
     // IUnknown
-    IFACEMETHODIMP QueryInterface(__in REFIID riid, __deref_out void** ppv)
+    IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _COM_Outptr_ void** ppv)
     {
         static const QITAB qit[] =
         {
@@ -39,23 +39,23 @@ public:
     }
 
     // IRotationUI
-    IFACEMETHODIMP Initialize(__in IDataObject* pdo);
+    IFACEMETHODIMP Initialize(_In_ IDataObject* pdo);
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Close();
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnItemAdded(__in UINT uIndex);
-    IFACEMETHODIMP OnItemProcessed(__in UINT uIndex);
-    IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
+    IFACEMETHODIMP OnItemAdded(_In_ UINT uIndex);
+    IFACEMETHODIMP OnItemProcessed(_In_ UINT uIndex);
+    IFACEMETHODIMP OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
-    static HRESULT s_CreateInstance(__in IRotationManager* prm, __deref_out IRotationUI** pprui);
+    static HRESULT s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ IRotationUI** pprui);
 
 private:
     ~CRotationUI();
 
-    HRESULT _Initialize(__in IRotationManager* prm);
+    HRESULT _Initialize(_In_ IRotationManager* prm);
     void _Cleanup();
     void _CheckIfCanceled();
 

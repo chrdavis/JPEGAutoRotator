@@ -93,7 +93,7 @@ CRotationItem::~CRotationItem()
     CoTaskMemFree(m_pszPath);
 }
 
-HRESULT CRotationItem::s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotationItem** ppri)
+HRESULT CRotationItem::s_CreateInstance(_In_ PCWSTR pszPath, _COM_Outptr_ IRotationItem** ppri)
 {
     *ppri = nullptr;
     CRotationItem* pri = new CRotationItem();
@@ -110,7 +110,7 @@ HRESULT CRotationItem::s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotati
     return hr;
 }
 
-IFACEMETHODIMP CRotationItem::get_Path(__deref_out PWSTR* ppszPath)
+IFACEMETHODIMP CRotationItem::get_Path(_Outptr_ PWSTR* ppszPath)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *ppszPath = nullptr;
@@ -122,7 +122,7 @@ IFACEMETHODIMP CRotationItem::get_Path(__deref_out PWSTR* ppszPath)
     return hr;
 }
 
-IFACEMETHODIMP CRotationItem::put_Path(__in PCWSTR pszPath)
+IFACEMETHODIMP CRotationItem::put_Path(_In_ PCWSTR pszPath)
 {
     CSRWExclusiveAutoLock lock(&m_lock);
     HRESULT hr = pszPath ? S_OK : E_INVALIDARG;
@@ -134,42 +134,42 @@ IFACEMETHODIMP CRotationItem::put_Path(__in PCWSTR pszPath)
     return hr;
 }
 
-IFACEMETHODIMP CRotationItem::get_WasRotated(__out BOOL* pfWasRotated)
+IFACEMETHODIMP CRotationItem::get_WasRotated(_Out_ BOOL* pfWasRotated)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *pfWasRotated = m_fWasRotated;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationItem::get_IsValidJPEG(__out BOOL* pfIsValidJPEG)
+IFACEMETHODIMP CRotationItem::get_IsValidJPEG(_Out_ BOOL* pfIsValidJPEG)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *pfIsValidJPEG = m_fIsValidJPEG;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationItem::get_IsRotationLossless(__out BOOL* pfIsRotationLossless)
+IFACEMETHODIMP CRotationItem::get_IsRotationLossless(_Out_ BOOL* pfIsRotationLossless)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *pfIsRotationLossless = m_fIsRotationLossless;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationItem::get_OriginalOrientation(__out UINT* puOriginalOrientation)
+IFACEMETHODIMP CRotationItem::get_OriginalOrientation(_Out_ UINT* puOriginalOrientation)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *puOriginalOrientation = m_uOriginalOrientation;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationItem::get_Result(__out HRESULT* phrResult)
+IFACEMETHODIMP CRotationItem::get_Result(_Out_ HRESULT* phrResult)
 {
     CSRWSharedAutoLock lock(&m_lock);
     *phrResult = m_hrResult;
     return S_OK; 
 }
 
-IFACEMETHODIMP CRotationItem::put_Result(__in HRESULT hrResult)
+IFACEMETHODIMP CRotationItem::put_Result(_In_ HRESULT hrResult)
 {
     CSRWExclusiveAutoLock lock(&m_lock);
     m_hrResult = hrResult;
@@ -259,7 +259,7 @@ CRotationManager::~CRotationManager()
     _Cleanup();
 }
 
-IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie)
+IFACEMETHODIMP CRotationManager::Advise(_In_ IRotationManagerEvents* prme, _Out_ DWORD* pdwCookie)
 {
     CSRWExclusiveAutoLock lock(&m_lockEvents);
     m_dwCookie++;
@@ -274,7 +274,7 @@ IFACEMETHODIMP CRotationManager::Advise(__in IRotationManagerEvents* prme, __out
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::UnAdvise(__in DWORD dwCookie)
+IFACEMETHODIMP CRotationManager::UnAdvise(_In_ DWORD dwCookie)
 {
     CSRWExclusiveAutoLock lock(&m_lockEvents);
 
@@ -321,7 +321,7 @@ IFACEMETHODIMP CRotationManager::Shutdown()
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
+IFACEMETHODIMP CRotationManager::AddItem(_In_ IRotationItem* pri)
 {
     // Scope lock
     {
@@ -335,7 +335,7 @@ IFACEMETHODIMP CRotationManager::AddItem(__in IRotationItem* pri)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri)
+IFACEMETHODIMP CRotationManager::GetItem(_In_ UINT uIndex, _COM_Outptr_ IRotationItem** ppri)
 {
     *ppri = nullptr;
     CSRWSharedAutoLock lock(&m_lockItems);
@@ -350,7 +350,7 @@ IFACEMETHODIMP CRotationManager::GetItem(__in UINT uIndex, __deref_out IRotation
     return hr;
 }
 
-IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
+IFACEMETHODIMP CRotationManager::GetItemCount(_Out_ UINT* puCount)
 {
     CSRWSharedAutoLock lock(&m_lockItems);
     *puCount = static_cast<UINT>(m_rotationItems.size());
@@ -358,7 +358,7 @@ IFACEMETHODIMP CRotationManager::GetItemCount(__out UINT* puCount)
 }
 
 // IRotationManagerEvents
-IFACEMETHODIMP CRotationManager::OnItemAdded(__in UINT uIndex)
+IFACEMETHODIMP CRotationManager::OnItemAdded(_In_ UINT uIndex)
 {
     CSRWExclusiveAutoLock lock(&m_lockEvents);
 
@@ -373,7 +373,7 @@ IFACEMETHODIMP CRotationManager::OnItemAdded(__in UINT uIndex)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::OnItemProcessed(__in UINT uIndex)
+IFACEMETHODIMP CRotationManager::OnItemProcessed(_In_ UINT uIndex)
 {
     CSRWExclusiveAutoLock lock(&m_lockEvents);
 
@@ -388,7 +388,7 @@ IFACEMETHODIMP CRotationManager::OnItemProcessed(__in UINT uIndex)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::OnProgress(__in UINT uCompleted, __in UINT uTotal)
+IFACEMETHODIMP CRotationManager::OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal)
 {
     CSRWExclusiveAutoLock lock(&m_lockEvents);
 
@@ -433,59 +433,59 @@ IFACEMETHODIMP CRotationManager::OnCompleted()
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::get_MaxWorkerThreadCount(__out UINT* puMaxThreadCount)
+IFACEMETHODIMP CRotationManager::get_MaxWorkerThreadCount(_Out_ UINT* puMaxThreadCount)
 {
     *puMaxThreadCount = m_uMaxWorkerThreadCount;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::put_MaxWorkerThreadCount(__in UINT uMaxThreadCount)
+IFACEMETHODIMP CRotationManager::put_MaxWorkerThreadCount(_In_ UINT uMaxThreadCount)
 {
     m_diagnosticsMode = true;
     m_uMaxWorkerThreadCount = uMaxThreadCount;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::get_WorkerThreadCount(__out UINT* puThreadCount)
+IFACEMETHODIMP CRotationManager::get_WorkerThreadCount(_Out_ UINT* puThreadCount)
 {
     *puThreadCount = m_uWorkerThreadCount;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::put_WorkerThreadCount(__in UINT uThreadCount)
+IFACEMETHODIMP CRotationManager::put_WorkerThreadCount(_In_ UINT uThreadCount)
 {
     m_diagnosticsMode = true;
     m_uWorkerThreadCount = uThreadCount;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::get_MinItemsPerWorkerThread(__out UINT* puMinItemsPerThread)
+IFACEMETHODIMP CRotationManager::get_MinItemsPerWorkerThread(_Out_ UINT* puMinItemsPerThread)
 {
     *puMinItemsPerThread = m_uMinItemsPerWorkerThread;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::put_MinItemsPerWorkerThread(__in UINT uMinItemsPerThread)
+IFACEMETHODIMP CRotationManager::put_MinItemsPerWorkerThread(_In_ UINT uMinItemsPerThread)
 {
     m_diagnosticsMode = true;
     m_uMinItemsPerWorkerThread = uMinItemsPerThread;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::get_ItemsPerWorkerThread(__out UINT* puNumItemsPerThread)
+IFACEMETHODIMP CRotationManager::get_ItemsPerWorkerThread(_Out_ UINT* puNumItemsPerThread)
 {
     *puNumItemsPerThread = m_uItemsPerWorkerThread;
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationManager::put_ItemsPerWorkerThread(__in UINT uNumItemsPerThread)
+IFACEMETHODIMP CRotationManager::put_ItemsPerWorkerThread(_In_ UINT uNumItemsPerThread)
 {
     m_diagnosticsMode = true;
     m_uItemsPerWorkerThread = uNumItemsPerThread;
     return S_OK;
 }
 
-HRESULT CRotationManager::s_CreateInstance(__deref_out IRotationManager** pprm)
+HRESULT CRotationManager::s_CreateInstance(_COM_Outptr_ IRotationManager** pprm)
 {
     *pprm = nullptr;
     CRotationManager *prm = new CRotationManager();
@@ -653,7 +653,7 @@ HRESULT CRotationManager::_GetWorkerThreadDimensions()
     return hr;
 }
 
-DWORD WINAPI CRotationManager::s_rotationWorkerThread(__in void* pv)
+DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
 {
     HRESULT hr = CoInitializeEx(NULL, 0);
     if (SUCCEEDED(hr))

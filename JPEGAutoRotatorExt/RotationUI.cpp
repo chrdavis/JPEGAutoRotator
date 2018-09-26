@@ -15,7 +15,7 @@ CRotationUI::~CRotationUI()
 {
 }
 
-HRESULT CRotationUI::s_CreateInstance(__in IRotationManager* prm, __deref_out IRotationUI** pprui)
+HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ IRotationUI** pprui)
 {
     *pprui = nullptr;
     CRotationUI *prui = new CRotationUI();
@@ -33,7 +33,7 @@ HRESULT CRotationUI::s_CreateInstance(__in IRotationManager* prm, __deref_out IR
 }
 
 // IRotationUI
-IFACEMETHODIMP CRotationUI::Initialize(__in IDataObject* pdo)
+IFACEMETHODIMP CRotationUI::Initialize(_In_ IDataObject* pdo)
 {
     m_spdo = pdo;
     return S_OK;
@@ -84,13 +84,13 @@ IFACEMETHODIMP CRotationUI::Close()
 }
 
 // IRotationManagerEvents
-IFACEMETHODIMP CRotationUI::OnItemAdded(__in UINT)
+IFACEMETHODIMP CRotationUI::OnItemAdded(_In_ UINT)
 {
     _CheckIfCanceled();
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
+IFACEMETHODIMP CRotationUI::OnItemProcessed(_In_ UINT uIndex)
 {
     _CheckIfCanceled();
 
@@ -117,7 +117,7 @@ IFACEMETHODIMP CRotationUI::OnItemProcessed(__in UINT uIndex)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnProgress(__in UINT uCompleted, __in UINT uTotal)
+IFACEMETHODIMP CRotationUI::OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal)
 {
     _CheckIfCanceled();
 
@@ -153,7 +153,7 @@ IFACEMETHODIMP CRotationUI::OnCompleted()
     return S_OK;
 }
 
-HRESULT CRotationUI::_Initialize(__in IRotationManager* prm)
+HRESULT CRotationUI::_Initialize(_In_ IRotationManager* prm)
 {
     m_sprm = prm;
 

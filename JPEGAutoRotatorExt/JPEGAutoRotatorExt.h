@@ -9,7 +9,7 @@ public:
     CJPEGAutoRotatorMenu();
 
     // IUnknown
-    IFACEMETHODIMP QueryInterface(__in REFIID riid, __deref_out void** ppv)
+    IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _COM_Outptr_ void** ppv)
     {
         static const QITAB qit[] =
         {
@@ -36,17 +36,17 @@ public:
     }
 
     // IShellExtInit
-    STDMETHODIMP Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder, __in IDataObject* pdto, HKEY hkProgID);
+    STDMETHODIMP Initialize(_In_opt_ PCIDLIST_ABSOLUTE pidlFolder, _In_ IDataObject* pdto, HKEY hkProgID);
 
     // IContextMenu
     STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uIDFirst, UINT uIDLast, UINT uFlags);
-    STDMETHODIMP InvokeCommand(__in LPCMINVOKECOMMANDINFO pCMI);
-    STDMETHODIMP GetCommandString(UINT_PTR, UINT, __in_opt UINT*, __in LPSTR, UINT)
+    STDMETHODIMP InvokeCommand(_In_ LPCMINVOKECOMMANDINFO pCMI);
+    STDMETHODIMP GetCommandString(UINT_PTR, UINT, _In_opt_ UINT*, _In_ LPSTR, UINT)
     {
         return E_NOTIMPL;
     }
 
-    static HRESULT s_CreateInstance(__in_opt IUnknown* punkOuter, __in REFIID riid, __out void** ppv);
+    static HRESULT s_CreateInstance(_In_opt_ IUnknown* punkOuter, _In_ REFIID riid, _Out_ void** ppv);
     static DWORD WINAPI s_RotationUIThreadProc(void* pData);
 
 private:

@@ -7,7 +7,7 @@ HINSTANCE g_hInst = 0;
 class CJPEGAutoRotatorClassFactory : public IClassFactory
 {
 public:
-    CJPEGAutoRotatorClassFactory(REFCLSID clsid) : 
+    CJPEGAutoRotatorClassFactory(_In_ REFCLSID clsid) : 
         m_cRef(1),
         m_clsid(clsid)
     {
@@ -15,7 +15,7 @@ public:
     }
 
     // IUnknown methods
-    IFACEMETHODIMP QueryInterface(REFIID riid, __deref_out void ** ppv)
+    IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _COM_Outptr_ void ** ppv)
     {
         static const QITAB qit[] =
         {
@@ -41,7 +41,7 @@ public:
     }
 
     // IClassFactory methods
-    IFACEMETHODIMP CreateInstance(__in_opt IUnknown *punkOuter, REFIID riid, __deref_out void **ppv)
+    IFACEMETHODIMP CreateInstance(_In_opt_ IUnknown *punkOuter, _In_ REFIID riid, _COM_Outptr_ void** ppv)
     {
         *ppv = NULL;
         HRESULT hr;
@@ -112,7 +112,7 @@ STDAPI DllCanUnloadNow()
 //
 // DLL export for creating COM objects
 //
-STDAPI DllGetClassObject(__in REFCLSID clsid, __in REFIID riid, __deref_out void **ppv)
+STDAPI DllGetClassObject(_In_ REFCLSID clsid, _In_ REFIID riid, _COM_Outptr_ void **ppv)
 {
     *ppv = NULL;
     HRESULT hr = E_OUTOFMEMORY;

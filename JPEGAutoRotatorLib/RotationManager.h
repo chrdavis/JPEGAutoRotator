@@ -10,7 +10,7 @@ public:
     CRotationItem();
 
     // IUnknown
-    IFACEMETHODIMP QueryInterface(REFIID riid, __deref_out void** ppv)
+    IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _COM_Outptr_ void** ppv)
     {
         static const QITAB qit[] =
         {
@@ -35,17 +35,17 @@ public:
         return cRef;
     }
 
-    IFACEMETHODIMP get_Path(__deref_out PWSTR* ppszPath);
-    IFACEMETHODIMP put_Path(__in PCWSTR pszPath);
-    IFACEMETHODIMP get_WasRotated(__out BOOL* pfWasRotated);
-    IFACEMETHODIMP get_IsValidJPEG(__out BOOL* pfIsValidJPEG);
-    IFACEMETHODIMP get_IsRotationLossless(__out BOOL* pfIsRotationLossless);
-    IFACEMETHODIMP get_OriginalOrientation(__out UINT* puOriginalOrientation);
-    IFACEMETHODIMP get_Result(__out HRESULT* phrResult);
-    IFACEMETHODIMP put_Result(__in HRESULT hrResult);
+    IFACEMETHODIMP get_Path(_Outptr_ PWSTR* ppszPath);
+    IFACEMETHODIMP put_Path(_In_ PCWSTR pszPath);
+    IFACEMETHODIMP get_WasRotated(_Out_ BOOL* pfWasRotated);
+    IFACEMETHODIMP get_IsValidJPEG(_Out_ BOOL* pfIsValidJPEG);
+    IFACEMETHODIMP get_IsRotationLossless(_Out_ BOOL* pfIsRotationLossless);
+    IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* puOriginalOrientation);
+    IFACEMETHODIMP get_Result(_Out_ HRESULT* phrResult);
+    IFACEMETHODIMP put_Result(_In_ HRESULT hrResult);
     IFACEMETHODIMP Rotate();
 
-    static HRESULT s_CreateInstance(__in PCWSTR pszPath, __deref_out IRotationItem** ppri);
+    static HRESULT s_CreateInstance(_In_ PCWSTR pszPath, _COM_Outptr_ IRotationItem** ppri);
 
 private:
     ~CRotationItem();
@@ -82,7 +82,7 @@ public:
     CRotationManager();
 
     // IUnknown
-    IFACEMETHODIMP QueryInterface(REFIID riid, __deref_out void** ppv)
+    IFACEMETHODIMP QueryInterface(_In_ REFIID riid, _COM_Outptr_ void** ppv)
     {
         static const QITAB qit[] =
         {
@@ -110,33 +110,33 @@ public:
     }
 
     // IRotationManager
-    IFACEMETHODIMP Advise(__in IRotationManagerEvents* prme, __out DWORD* pdwCookie);
-    IFACEMETHODIMP UnAdvise(__in DWORD dwCookie);
+    IFACEMETHODIMP Advise(_In_ IRotationManagerEvents* prme, _Out_ DWORD* pdwCookie);
+    IFACEMETHODIMP UnAdvise(_In_ DWORD dwCookie);
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Cancel();
     IFACEMETHODIMP Shutdown();
-    IFACEMETHODIMP AddItem(__in IRotationItem* pri);
-    IFACEMETHODIMP GetItem(__in UINT uIndex, __deref_out IRotationItem** ppri);
-    IFACEMETHODIMP GetItemCount(__out UINT* puCount);
+    IFACEMETHODIMP AddItem(_In_ IRotationItem* pri);
+    IFACEMETHODIMP GetItem(_In_ UINT uIndex, _COM_Outptr_ IRotationItem** ppri);
+    IFACEMETHODIMP GetItemCount(_Out_ UINT* puCount);
 
     // IRotationManagerDiagnostics
-    IFACEMETHODIMP get_MaxWorkerThreadCount(__out UINT* puMaxThreadCount);
-    IFACEMETHODIMP put_MaxWorkerThreadCount(__in UINT uMaxThreadCount);
-    IFACEMETHODIMP get_WorkerThreadCount(__out UINT* puThreadCount);
-    IFACEMETHODIMP put_WorkerThreadCount(__in UINT uThreadCount);
-    IFACEMETHODIMP get_MinItemsPerWorkerThread(__out UINT* puMinItemsPerThread);
-    IFACEMETHODIMP put_MinItemsPerWorkerThread(__in UINT uMinItemsPerThread);
-    IFACEMETHODIMP get_ItemsPerWorkerThread(__out UINT* puNumItemsPerThread);
-    IFACEMETHODIMP put_ItemsPerWorkerThread(__in UINT uNumItemsPerThread);
+    IFACEMETHODIMP get_MaxWorkerThreadCount(_Out_ UINT* puMaxThreadCount);
+    IFACEMETHODIMP put_MaxWorkerThreadCount(_In_ UINT uMaxThreadCount);
+    IFACEMETHODIMP get_WorkerThreadCount(_Out_ UINT* puThreadCount);
+    IFACEMETHODIMP put_WorkerThreadCount(_In_ UINT uThreadCount);
+    IFACEMETHODIMP get_MinItemsPerWorkerThread(_Out_ UINT* puMinItemsPerThread);
+    IFACEMETHODIMP put_MinItemsPerWorkerThread(_In_ UINT uMinItemsPerThread);
+    IFACEMETHODIMP get_ItemsPerWorkerThread(_Out_ UINT* puNumItemsPerThread);
+    IFACEMETHODIMP put_ItemsPerWorkerThread(_In_ UINT uNumItemsPerThread);
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnItemAdded(__in UINT uIndex);
-    IFACEMETHODIMP OnItemProcessed(__in UINT uIndex);
-    IFACEMETHODIMP OnProgress(__in UINT uCompleted, __in UINT uTotal);
+    IFACEMETHODIMP OnItemAdded(_In_ UINT uIndex);
+    IFACEMETHODIMP OnItemProcessed(_In_ UINT uIndex);
+    IFACEMETHODIMP OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
-    static HRESULT s_CreateInstance(__deref_out IRotationManager** pprm);
+    static HRESULT s_CreateInstance(_COM_Outptr_ IRotationManager** pprm);
 
 private:
     ~CRotationManager();
@@ -150,7 +150,7 @@ private:
     void _ClearRotationItems();
     void _ClearEventHandlers();
 
-    static DWORD WINAPI s_rotationWorkerThread(__in void* pv);
+    static DWORD WINAPI s_rotationWorkerThread(_In_ void* pv);
 
 private:
     struct ROTATION_WORKER_THREAD_INFO

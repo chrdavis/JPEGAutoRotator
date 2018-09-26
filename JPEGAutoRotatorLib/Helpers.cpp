@@ -3,7 +3,7 @@
 #include "RotationManager.h"
 
 // Iterate through the data object and add items to the rotation manager
-HRESULT EnumerateDataObject(__in IDataObject* pdo, __in IRotationManager* prm)
+HRESULT EnumerateDataObject(_In_ IDataObject* pdo, _In_ IRotationManager* prm)
 {
     CComPtr<IShellItemArray> spsia;
     HRESULT hr = SHCreateShellItemArrayFromDataObject(pdo, IID_PPV_ARGS(&spsia));
@@ -23,7 +23,7 @@ HRESULT EnumerateDataObject(__in IDataObject* pdo, __in IRotationManager* prm)
 // Just in case setup a maximum folder depth
 #define MAX_ENUM_DEPTH 300
 
-HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, __in IRotationManager* prm)
+HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, _In_ IRotationManager* prm)
 {
     HRESULT hr = E_INVALIDARG;
 
