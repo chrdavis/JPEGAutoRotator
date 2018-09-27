@@ -177,7 +177,6 @@ private:
 
     long  m_cRef = 1;
     ROTATION_WORKER_THREAD_INFO m_workerThreadInfo[MAX_ROTATION_WORKER_THREADS];
-    bool m_diagnosticsMode = false;
     HANDLE m_workerThreadHandles[MAX_ROTATION_WORKER_THREADS];
     UINT m_uWorkerThreadCount = 0;
     UINT m_uMaxWorkerThreadCount = MAX_ROTATION_WORKER_THREADS;

@@ -252,6 +252,8 @@ IFACEMETHODIMP CRotationItem::Rotate()
 
 CRotationManager::CRotationManager()
 {
+    // Initialize the maximum number of worker threads to the number of cores available
+    m_uMaxWorkerThreadCount = min(GetLogicalProcessorCount(), MAX_ROTATION_WORKER_THREADS);
 }
 
 CRotationManager::~CRotationManager()
@@ -459,7 +461,6 @@ IFACEMETHODIMP CRotationManager::get_MaxWorkerThreadCount(_Out_ UINT* puMaxThrea
 
 IFACEMETHODIMP CRotationManager::put_MaxWorkerThreadCount(_In_ UINT uMaxThreadCount)
 {
-    m_diagnosticsMode = true;
     m_uMaxWorkerThreadCount = uMaxThreadCount;
     return S_OK;
 }
@@ -472,7 +473,6 @@ IFACEMETHODIMP CRotationManager::get_WorkerThreadCount(_Out_ UINT* puThreadCount
 
 IFACEMETHODIMP CRotationManager::put_WorkerThreadCount(_In_ UINT uThreadCount)
 {
-    m_diagnosticsMode = true;
     m_uWorkerThreadCount = uThreadCount;
     return S_OK;
 }
@@ -485,7 +485,6 @@ IFACEMETHODIMP CRotationManager::get_MinItemsPerWorkerThread(_Out_ UINT* puMinIt
 
 IFACEMETHODIMP CRotationManager::put_MinItemsPerWorkerThread(_In_ UINT uMinItemsPerThread)
 {
-    m_diagnosticsMode = true;
     m_uMinItemsPerWorkerThread = uMinItemsPerThread;
     return S_OK;
 }
@@ -498,7 +497,6 @@ IFACEMETHODIMP CRotationManager::get_ItemsPerWorkerThread(_Out_ UINT* puNumItems
 
 IFACEMETHODIMP CRotationManager::put_ItemsPerWorkerThread(_In_ UINT uNumItemsPerThread)
 {
-    m_diagnosticsMode = true;
     m_uItemsPerWorkerThread = uNumItemsPerThread;
     return S_OK;
 }
@@ -634,14 +632,12 @@ HRESULT CRotationManager::_CreateWorkerThreads()
 
 HRESULT CRotationManager::_GetWorkerThreadDimensions()
 {
-    UINT uMaxWorkerThreads = min(GetLogicalProcessorCount(), MAX_ROTATION_WORKER_THREADS);
     UINT uTotalItems = 0;
     HRESULT hr = GetItemCount(&uTotalItems);
     if (SUCCEEDED(hr))
     {
         hr = (uTotalItems > 0) ? S_OK : E_FAIL;
-        // Ensure we have items and we are not in diagnostics mode which sets the values calculated below
-        if (SUCCEEDED(hr) && !m_diagnosticsMode)
+        if (SUCCEEDED(hr))
         {
             // Determine the best number of threads based on the number of items to rotate
             // and our minimum number of items per worker thread
@@ -649,21 +645,29 @@ HRESULT CRotationManager::_GetWorkerThreadDimensions()
             // How many work item sized amounts of items do we have?
             UINT uTotalWorkItems = max(1, (uTotalItems / MIN_ROTATION_WORK_SIZE));
 
-            // How many worker threads do we require, with a minimum being the max worker threads value
-            UINT uIdealWorkerThreadCount = (uTotalWorkItems / uMaxWorkerThreads);
-            if ((uTotalWorkItems % uMaxWorkerThreads) > 0)
+            // Have we already determined our worker thread count?
+            if (m_uWorkerThreadCount == 0)
             {
-                uIdealWorkerThreadCount++;
+                // How many worker threads do we require, with a minimum being the max worker threads value
+                UINT uIdealWorkerThreadCount = (uTotalWorkItems / m_uMaxWorkerThreadCount);
+                if ((uTotalWorkItems % m_uMaxWorkerThreadCount) > 0)
+                {
+                    uIdealWorkerThreadCount++;
+                }
+
+                // Ensure we don't exceed m_uMaxWorkerThreadCount
+                m_uWorkerThreadCount = min(uIdealWorkerThreadCount, m_uMaxWorkerThreadCount);
             }
 
-            // Ensure we don't exceed uMaxWorkerThreads
-            m_uWorkerThreadCount = min(uIdealWorkerThreadCount, uMaxWorkerThreads);
-
-            // Now determine the number of items per worker
-            m_uItemsPerWorkerThread = (uTotalItems / m_uWorkerThreadCount);
+            // Have we already determined the number of items per worker thread?
             if (m_uItemsPerWorkerThread == 0)
             {
-                m_uItemsPerWorkerThread = uTotalItems % m_uWorkerThreadCount;
+                // Now determine the number of items per worker
+                m_uItemsPerWorkerThread = (uTotalItems / m_uWorkerThreadCount);
+                if (m_uItemsPerWorkerThread == 0)
+                {
+                    m_uItemsPerWorkerThread = uTotalItems % m_uWorkerThreadCount;
+                }
             }
         }
     }
