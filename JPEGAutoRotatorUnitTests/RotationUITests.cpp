@@ -21,6 +21,7 @@ namespace JPEGAutoRotatorUnitTests
         TEST_CLASS_CLEANUP(Cleanup)
         {
         }
+
         TEST_METHOD(VerifyRotationUICreation)
         {
             CComPtr<IRotationManager> sprm;

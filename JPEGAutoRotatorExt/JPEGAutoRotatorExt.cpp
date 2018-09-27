@@ -123,7 +123,6 @@ bool CJPEGAutoRotatorMenu::_IsFolder()
 DWORD WINAPI CJPEGAutoRotatorMenu::s_RotationUIThreadProc(_In_ void* pData)
 {
     IStream* pstrm = (IStream*)pData;
-
     CComPtr<IDataObject> spdo;
     if (SUCCEEDED(CoGetInterfaceAndReleaseStream(pstrm, IID_PPV_ARGS(&spdo))))
     {

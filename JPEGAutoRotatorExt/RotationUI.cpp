@@ -22,6 +22,8 @@ HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ I
     HRESULT hr = prui ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr))
     {
+        // Pass the rotation manager to the rotation UI so it can subscribe
+        // to events
         hr = prui->_Initialize(prm);
         if (SUCCEEDED(hr))
         {
@@ -35,43 +37,45 @@ HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ I
 // IRotationUI
 IFACEMETHODIMP CRotationUI::Initialize(_In_ IDataObject* pdo)
 {
+    // Cache the data object for enumeration later
     m_spdo = pdo;
     return S_OK;
 }
 
 IFACEMETHODIMP CRotationUI::Start()
 {
-    HRESULT hr = E_FAIL;
+    // Initialize progress dialog text
+    WCHAR szResource[100] = { 0 };
+    LoadString(g_hInst, IDS_AUTOROTATOR, szResource, ARRAYSIZE(szResource));
+    m_sppd->SetTitle(szResource);
+    LoadString(g_hInst, IDS_LOADING, szResource, ARRAYSIZE(szResource));
+    m_sppd->SetLine(1, szResource, FALSE, nullptr);
+    LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
+    m_sppd->SetCancelMsg(szResource, nullptr);
+
+    // Start progress dialog
+    m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_MODAL | PROGDLG_AUTOTIME, nullptr);
+
+    // If we have a IDataObject enumerate it now and add it to the rotation manager.  Caller may have already
+    // added items to the rotation manager before passing it to the rotation UI.
     if (m_spdo)
     {
-        // Initialize progress dialog 
-        WCHAR szResource[100] = { 0 };
-        LoadString(g_hInst, IDS_AUTOROTATOR, szResource, ARRAYSIZE(szResource));
-        m_sppd->SetTitle(szResource);
-        LoadString(g_hInst, IDS_LOADING, szResource, ARRAYSIZE(szResource));
-        m_sppd->SetLine(1, szResource, FALSE, nullptr);
-        LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
-        m_sppd->SetCancelMsg(szResource, nullptr);
-
-        // Start progress dialog
-        m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_MODAL | PROGDLG_AUTOTIME, nullptr);
-
         // Enumerate the data object and add all items to the rotation manager
         EnumerateDataObject(m_spdo, m_sprm);
+        m_spdo = nullptr;
+    }
 
-        // Update progress dialog line to show we are now rotating
-        LoadString(g_hInst, IDS_AUTOROTATING, szResource, ARRAYSIZE(szResource));
-        m_sppd->SetLine(1, szResource, FALSE, nullptr);
+    // Update progress dialog line to show we are now rotating
+    LoadString(g_hInst, IDS_AUTOROTATING, szResource, ARRAYSIZE(szResource));
+    m_sppd->SetLine(1, szResource, FALSE, nullptr);
 
-        // Start operation.  Here we will block but we should get reentered in our event callback.
-        // That way we can update the progress dialog, check the cancel state and notify the 
-        // manager if we want to cancel.
-        hr = m_sprm->Start();
-
-        if (m_sppd)
-        {
-            m_sppd->StopProgressDialog();
-        }
+    // Start operation.  Here we will block but we should get reentered in our event callback.
+    // That way we can update the progress dialog, check the cancel state and notify the 
+    // manager if we want to cancel.
+    HRESULT hr = m_sprm->Start();
+    if (m_sppd)
+    {
+        m_sppd->StopProgressDialog();
     }
     return hr;
 }
@@ -79,7 +83,6 @@ IFACEMETHODIMP CRotationUI::Start()
 IFACEMETHODIMP CRotationUI::Close()
 {
     _Cleanup();
-
     return S_OK;
 }
 
@@ -123,6 +126,7 @@ IFACEMETHODIMP CRotationUI::OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal)
 
     if (m_sppd)
     {
+        // Update text in progress dialog
         WCHAR szProgress[100] = { 0 };
         WCHAR szResource[100] = { 0 };
         LoadString(g_hInst, IDS_ROTATEPROGRESS, szResource, ARRAYSIZE(szResource));
@@ -155,6 +159,7 @@ IFACEMETHODIMP CRotationUI::OnCompleted()
 
 HRESULT CRotationUI::_Initialize(_In_ IRotationManager* prm)
 {
+    // Cache the rotation manager
     m_sprm = prm;
 
     // Subscribe to rotation manager events
