@@ -26,7 +26,7 @@ namespace JPEGAutoRotatorUnitTests
         {
             CComPtr<IRotationManager> sprm;
             Assert::IsTrue(CRotationManager::s_CreateInstance(&sprm) == S_OK);
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 100; i++)
             {
                 CComPtr<IRotationItem> spri;
                 CMockRotationItem *pmri = new CMockRotationItem();

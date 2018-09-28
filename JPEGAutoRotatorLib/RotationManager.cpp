@@ -795,7 +795,14 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
                                     spri->get_IsRotationLossless(&isLossless);
                                     if (!previewOnly && isValidJPEG && (!losslessOnly || !isLossless))
                                     {
-                                        hrWork = spri->Rotate();
+                                        UINT orientation = 0;
+                                        spri->get_OriginalOrientation(&orientation);
+                                        // Does the image actually have a orientation property that 
+                                        // necessitates rotation?
+                                        if (orientation <= 8 && orientation >= 2)
+                                        {
+                                            hrWork = spri->Rotate();
+                                        }
                                     }
                                 }
 
