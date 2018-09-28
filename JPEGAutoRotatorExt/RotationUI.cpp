@@ -61,7 +61,8 @@ IFACEMETHODIMP CRotationUI::Start()
     if (m_spdo)
     {
         // Enumerate the data object and add all items to the rotation manager
-        EnumerateDataObject(m_spdo, m_sprm);
+        // TODO: Update to respect user setting to not enumerate subfolders?
+        EnumerateDataObject(m_spdo, m_sprm, true);
         m_spdo = nullptr;
     }
 

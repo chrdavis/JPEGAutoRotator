@@ -175,75 +175,111 @@ IFACEMETHODIMP CRotationItem::put_Result(_In_ HRESULT hrResult)
     m_hrResult = hrResult;
     return S_OK;
 }
-
-IFACEMETHODIMP CRotationItem::Rotate()
+IFACEMETHODIMP CRotationItem::Load()
 {
+    HRESULT hr = S_OK;
     CSRWExclusiveAutoLock lock(&m_lock);
-    HRESULT hr = m_pszPath ? S_OK : E_FAIL;
-    if (SUCCEEDED(hr))
+
+    // Get image info before actual rotation
+    if (!m_loaded)
     {
-        CComPtr<IStream> spstrm;
-        hr = SHCreateStreamOnFile(m_pszPath, STGM_READWRITE, &spstrm);
+        hr = m_pszPath ? S_OK : E_FAIL;
         if (SUCCEEDED(hr))
         {
-            // Create a GDIPlus Image from the stream
-            Image* pImage = Image::FromStream(spstrm);
-            hr = (pImage && pImage->GetLastStatus() == Ok) ? S_OK : E_FAIL;
+            CComPtr<IStream> spstrm;
+            hr = SHCreateStreamOnFile(m_pszPath, STGM_READWRITE, &spstrm);
             if (SUCCEEDED(hr))
             {
-                GUID guidGdiplusFormat = { 0 };
-                if (pImage->GetRawFormat(&guidGdiplusFormat) == Ok &&
-                    (guidGdiplusFormat == ImageFormatJPEG))
+                // Create a GDIPlus Image from the stream
+                Image* pImage = Image::FromStream(spstrm);
+                hr = (pImage && pImage->GetLastStatus() == Ok) ? S_OK : E_FAIL;
+                if (SUCCEEDED(hr))
                 {
-                    // Dimensions must be multiples of 8 for the rotation to be lossless
-                    m_fIsRotationLossless = ((pImage->GetHeight() % 8 == 0) && (pImage->GetWidth() % 8 == 0));
-                    m_fIsValidJPEG = true;
-
-                    // GetPropertyItemSize is costly so try to only get this once
-                    if (s_uTagOrientationPropSize == 0)
+                    GUID guidGdiplusFormat = { 0 };
+                    if (pImage->GetRawFormat(&guidGdiplusFormat) == Ok &&
+                        (guidGdiplusFormat == ImageFormatJPEG))
                     {
-                        s_uTagOrientationPropSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
-                    }
+                        // Dimensions must be multiples of 8 for the rotation to be lossless
+                        m_fIsRotationLossless = ((pImage->GetHeight() % 8 == 0) && (pImage->GetWidth() % 8 == 0));
+                        m_fIsValidJPEG = true;
 
-                    if (pImage->GetLastStatus() == Ok)
-                    {
-                        const int LOCAL_BUFFER_SIZE = 32;
-                        BYTE buffer[LOCAL_BUFFER_SIZE];
-                        PropertyItem* pItem = (PropertyItem*)buffer;
-
-                        if (s_uTagOrientationPropSize < LOCAL_BUFFER_SIZE &&
-                            pImage->GetPropertyItem(PropertyTagOrientation, s_uTagOrientationPropSize, pItem) == Gdiplus::Ok &&
-                            pItem->type == PropertyTagTypeShort)
+                        // GetPropertyItemSize can be costly so try to only get this once
+                        if (s_uTagOrientationPropSize == 0)
                         {
-                            m_uOriginalOrientation = static_cast<UINT>(*((USHORT*)pItem->value));
-                            // Ensure valid orientation range.  If not in range do nothing and return success.
-                            if (m_uOriginalOrientation <= 8 && m_uOriginalOrientation >= 2)
+                            s_uTagOrientationPropSize = pImage->GetPropertyItemSize(PropertyTagOrientation);
+                        }
+
+                        if (pImage->GetLastStatus() == Ok)
+                        {
+                            // Get the orientation property if it exists
+                            const int LOCAL_BUFFER_SIZE = 32;
+                            BYTE buffer[LOCAL_BUFFER_SIZE];
+                            PropertyItem* pItem = (PropertyItem*)buffer;
+
+                            if (s_uTagOrientationPropSize < LOCAL_BUFFER_SIZE &&
+                                pImage->GetPropertyItem(PropertyTagOrientation, s_uTagOrientationPropSize, pItem) == Gdiplus::Ok &&
+                                pItem->type == PropertyTagTypeShort)
                             {
-                                hr = (pImage->RotateFlip(rotateFlipTable[m_uOriginalOrientation]) == Ok) ? S_OK : E_FAIL;
-                                if (SUCCEEDED(hr))
-                                {
-                                    // Remove the orientation tag
-                                    pImage->RemovePropertyItem(PropertyTagOrientation);
-                                    // Save back to original location
-                                    IStream_Reset(spstrm);
-                                    CLSID jpgClsid;
-                                    GetEncoderClsid(L"image/jpeg", &jpgClsid);
-                                    hr = (pImage->Save(spstrm, &jpgClsid, nullptr) == Ok) ? S_OK : E_FAIL;
-                                    if (SUCCEEDED(hr))
-                                    {
-                                        m_fWasRotated = true;
-                                    }
-                                }
+                                m_uOriginalOrientation = static_cast<UINT>(*((USHORT*)pItem->value));
                             }
                         }
                     }
                 }
-            }
 
-            if (pImage)
+                if (pImage)
+                {
+                    delete pImage;
+                    pImage = nullptr;
+                }
+            }
+        }
+
+        m_loaded = true;
+    }
+    return hr;
+}
+
+IFACEMETHODIMP CRotationItem::Rotate()
+{
+    CSRWExclusiveAutoLock lock(&m_lock);
+    HRESULT hr = (m_loaded && m_fIsValidJPEG) ? S_OK : E_FAIL; 
+    if (SUCCEEDED(hr))
+    {
+        hr = m_pszPath ? S_OK : E_FAIL;
+        if (SUCCEEDED(hr))
+        {
+            CComPtr<IStream> spstrm;
+            hr = SHCreateStreamOnFile(m_pszPath, STGM_READWRITE, &spstrm);
+            if (SUCCEEDED(hr))
             {
-                delete pImage;
-                pImage = nullptr;
+                // Create a GDIPlus Image from the stream
+                Image* pImage = Image::FromStream(spstrm);
+                hr = (pImage && pImage->GetLastStatus() == Ok) ? S_OK : E_FAIL;
+                if (SUCCEEDED(hr))
+                {
+                    // Ensure valid orientation range.  If not in range do nothing and return success.
+                    if (m_uOriginalOrientation <= 8 && m_uOriginalOrientation >= 2)
+                    {
+                        hr = (pImage->RotateFlip(rotateFlipTable[m_uOriginalOrientation]) == Ok) ? S_OK : E_FAIL;
+                        // Remove the orientation tag
+                        pImage->RemovePropertyItem(PropertyTagOrientation);
+                        // Save back to original location
+                        IStream_Reset(spstrm);
+                        CLSID jpgClsid;
+                        GetEncoderClsid(L"image/jpeg", &jpgClsid);
+                        hr = (pImage->Save(spstrm, &jpgClsid, nullptr) == Ok) ? S_OK : E_FAIL;
+                        if (SUCCEEDED(hr))
+                        {
+                            m_fWasRotated = true;
+                        }
+                    }
+                }
+
+                if (pImage)
+                {
+                    delete pImage;
+                    pImage = nullptr;
+                }
             }
         }
     }
@@ -450,6 +486,43 @@ IFACEMETHODIMP CRotationManager::OnCompleted()
         }
     }
 
+    return S_OK;
+}
+
+// IRotationManagerDiagnostics
+IFACEMETHODIMP CRotationManager::get_EnumerateSubFolders(_Out_ BOOL* pEnumSubFolders)
+{
+    *pEnumSubFolders = m_enumSubFolders;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_EnumerateSubFolders(_In_ BOOL enumSubFolders)
+{
+    m_enumSubFolders = enumSubFolders;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::get_LosslessOnly(_Out_ BOOL* pLosslessOnly)
+{
+    *pLosslessOnly = m_losslessOnly;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_LosslessOnly(_In_ BOOL losslessOnly)
+{
+    m_losslessOnly = losslessOnly;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::get_PreviewOnly(_Out_ BOOL* pPreviewOnly)
+{
+    *pPreviewOnly = m_previewOnly;
+    return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::put_PreviewOnly(_In_ BOOL previewOnly)
+{
+    m_previewOnly = previewOnly;
     return S_OK;
 }
 
@@ -686,30 +759,50 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
             // Wait to be told we can begin
             if (WaitForSingleObject(prwtd->hStartEvent, INFINITE) == WAIT_OBJECT_0)
             {
-                for (UINT u = prwtd->uFirstIndex; u <= prwtd->uLastIndex; u++)
+                CComPtr<IRotationManagerDiagnostics> sprmd;
+                if (SUCCEEDED(prwtd->sprm->QueryInterface(IID_PPV_ARGS(&sprmd))))
                 {
-                    // Check if cancel event is signaled
-                    if (WaitForSingleObject(prwtd->hCancelEvent, 0) == WAIT_OBJECT_0)
+                    BOOL previewOnly = FALSE;
+                    BOOL losslessOnly = FALSE;
+                    sprmd->get_PreviewOnly(&previewOnly);
+                    sprmd->get_LosslessOnly(&losslessOnly);
+                    for (UINT u = prwtd->uFirstIndex; u <= prwtd->uLastIndex; u++)
                     {
-                        // Canceled from manager
-                        // Send the manager thread the canceled message
-                        PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_CANCELED, GetCurrentThreadId(), 0);
-                        break;
-                    }
-
-                    CComPtr<IRotationItem> spri;
-                    if (SUCCEEDED(prwtd->sprm->GetItem(u, &spri)))
-                    {
-                        HRESULT hrWork;
-                        spri->get_Result(&hrWork);
-                        // S_FALSE means we have not processed this item yet
-                        if (hrWork == S_FALSE)
+                        // Check if cancel event is signaled
+                        if (WaitForSingleObject(prwtd->hCancelEvent, 0) == WAIT_OBJECT_0)
                         {
-                            // Perform the rotation
-                            hrWork = spri->Rotate();
-                            spri->put_Result(hrWork);
-                            // Send the manager thread the rotation item processed message
-                            PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ITEM_PROCESSED, GetCurrentThreadId(), u);
+                            // Canceled from manager
+                            // Send the manager thread the canceled message
+                            PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_CANCELED, GetCurrentThreadId(), 0);
+                            break;
+                        }
+
+                        CComPtr<IRotationItem> spri;
+                        if (SUCCEEDED(prwtd->sprm->GetItem(u, &spri)))
+                        {
+                            HRESULT hrWork;
+                            spri->get_Result(&hrWork);
+                            // S_FALSE means we have not processed this item yet
+                            if (hrWork == S_FALSE)
+                            {
+                                // Perform the rotation
+                                hrWork = spri->Load();
+                                if (SUCCEEDED(hrWork))
+                                {
+                                    BOOL isLossless = FALSE;
+                                    BOOL isValidJPEG = FALSE;
+                                    spri->get_IsValidJPEG(&isValidJPEG);
+                                    spri->get_IsRotationLossless(&isLossless);
+                                    if (!previewOnly && isValidJPEG && (!losslessOnly || !isLossless))
+                                    {
+                                        hrWork = spri->Rotate();
+                                    }
+                                }
+
+                                spri->put_Result(hrWork);
+                                // Send the manager thread the rotation item processed message
+                                PostThreadMessage(prwtd->dwManagerThreadId, ROTM_ROTI_ITEM_PROCESSED, GetCurrentThreadId(), u);
+                            }
                         }
                     }
                 }

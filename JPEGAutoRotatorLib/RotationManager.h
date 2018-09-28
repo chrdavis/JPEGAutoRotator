@@ -47,6 +47,7 @@ public:
     IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* puOriginalOrientation);
     IFACEMETHODIMP get_Result(_Out_ HRESULT* phrResult);
     IFACEMETHODIMP put_Result(_In_ HRESULT hrResult);
+    IFACEMETHODIMP Load();
     IFACEMETHODIMP Rotate();
 
     // IRotationItemFactory
@@ -66,6 +67,7 @@ private:
     bool m_fWasRotated = false;
     bool m_fIsValidJPEG = false;
     bool m_fIsRotationLossless = true;
+    bool m_loaded = false;
     UINT m_uOriginalOrientation = 1;
     HRESULT m_hrResult = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
     CSRWLock m_lock;
@@ -128,6 +130,12 @@ public:
     IFACEMETHODIMP GetRotationItemFactory(_In_ IRotationItemFactory** pprif);
 
     // IRotationManagerDiagnostics
+    IFACEMETHODIMP get_EnumerateSubFolders(_Out_ BOOL* pEnumSubFolders);
+    IFACEMETHODIMP put_EnumerateSubFolders(_In_ BOOL enumSubFolders);
+    IFACEMETHODIMP get_LosslessOnly(_Out_ BOOL* pLosslessOnly);
+    IFACEMETHODIMP put_LosslessOnly(_In_ BOOL losslessOnly);
+    IFACEMETHODIMP get_PreviewOnly(_Out_ BOOL* pPreviewOnly);
+    IFACEMETHODIMP put_PreviewOnly(_In_ BOOL previewOnly);
     IFACEMETHODIMP get_MaxWorkerThreadCount(_Out_ UINT* puMaxThreadCount);
     IFACEMETHODIMP put_MaxWorkerThreadCount(_In_ UINT uMaxThreadCount);
     IFACEMETHODIMP get_WorkerThreadCount(_Out_ UINT* puThreadCount);
@@ -183,6 +191,9 @@ private:
     UINT m_uMinItemsPerWorkerThread = 0;
     UINT m_uMaxItemsPerWorkerThread = 0;
     UINT m_uItemsPerWorkerThread = 0;
+    bool m_previewOnly = false;
+    bool m_losslessOnly = false;
+    bool m_enumSubFolders = true;
     ULONG_PTR m_gdiplusToken;
     HANDLE m_hCancelEvent = nullptr;
     HANDLE m_hStartEvent = nullptr;

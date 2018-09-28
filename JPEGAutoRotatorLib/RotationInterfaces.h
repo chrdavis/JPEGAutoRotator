@@ -12,6 +12,7 @@ public:
     IFACEMETHOD(get_OriginalOrientation)(_Out_ UINT* puOriginalOrientation) = 0;
     IFACEMETHOD(get_Result)(_Out_ HRESULT* phrResult) = 0;
     IFACEMETHOD(put_Result)(_In_ HRESULT hrResult) = 0;
+    IFACEMETHOD(Load)() = 0;
     IFACEMETHOD(Rotate)() = 0;
 };
 
@@ -53,6 +54,12 @@ public:
 interface __declspec(uuid("D1952AE2-93FF-4C5D-9AC5-C6DADBEDE242")) IRotationManagerDiagnostics : public IUnknown
 {
 public:
+    IFACEMETHOD(get_EnumerateSubFolders)(_Out_ BOOL* pEnumSubFolders) = 0;
+    IFACEMETHOD(put_EnumerateSubFolders)(_In_ BOOL enumSubFolders) = 0;
+    IFACEMETHOD(get_LosslessOnly)(_Out_ BOOL* pLosslessOnly) = 0;
+    IFACEMETHOD(put_LosslessOnly)(_In_ BOOL losslessOnly) = 0;
+    IFACEMETHOD(get_PreviewOnly)(_Out_ BOOL* pPreviewOnly) = 0;
+    IFACEMETHOD(put_PreviewOnly)(_In_ BOOL previewOnly) = 0;
     IFACEMETHOD(get_MaxWorkerThreadCount)(_Out_ UINT* puMaxThreadCount) = 0;
     IFACEMETHOD(put_MaxWorkerThreadCount)(_In_ UINT uMaxThreadCount) = 0;
     IFACEMETHOD(get_WorkerThreadCount)(_Out_ UINT* puThreadCount) = 0;

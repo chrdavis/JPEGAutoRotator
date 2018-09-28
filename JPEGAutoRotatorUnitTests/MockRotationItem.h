@@ -103,6 +103,11 @@ public:
         return S_OK;
     }
 
+    IFACEMETHODIMP Load()
+    {
+        return S_OK;
+    }
+
     IFACEMETHODIMP Rotate()
     {
         return S_OK;
