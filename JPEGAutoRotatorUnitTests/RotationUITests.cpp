@@ -44,7 +44,7 @@ namespace JPEGAutoRotatorUnitTests
 
             // Create the Rotation UI
             CComPtr<IRotationUI> sprui;
-            Assert::IsTrue(CRotationUI::s_CreateInstance(sprm, &sprui) == S_OK);
+            Assert::IsTrue(CRotationUI::s_CreateInstance(sprm, nullptr, &sprui) == S_OK);
             // Start the operation through the UI
             Assert::IsTrue(sprui->Start() == S_OK);
         }

@@ -39,7 +39,6 @@ public:
     }
 
     // IRotationUI
-    IFACEMETHODIMP Initialize(_In_ IDataObject* pdo);
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Close();
 
@@ -50,12 +49,12 @@ public:
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
-    static HRESULT s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ IRotationUI** pprui);
+    static HRESULT s_CreateInstance(_In_ IRotationManager* prm, _In_opt_ IDataObject* pdo, _COM_Outptr_ IRotationUI** pprui);
 
 private:
     ~CRotationUI();
 
-    HRESULT _Initialize(_In_ IRotationManager* prm);
+    HRESULT _Initialize(_In_ IRotationManager* prm, _In_opt_ IDataObject* pdo);
     void _Cleanup();
     void _CheckIfCanceled();
 

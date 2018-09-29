@@ -15,7 +15,7 @@ CRotationUI::~CRotationUI()
 {
 }
 
-HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ IRotationUI** pprui)
+HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _In_opt_ IDataObject* pdo, _COM_Outptr_ IRotationUI** pprui)
 {
     *pprui = nullptr;
     CRotationUI *prui = new CRotationUI();
@@ -24,7 +24,7 @@ HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ I
     {
         // Pass the rotation manager to the rotation UI so it can subscribe
         // to events
-        hr = prui->_Initialize(prm);
+        hr = prui->_Initialize(prm, pdo);
         if (SUCCEEDED(hr))
         {
             hr = prui->QueryInterface(IID_PPV_ARGS(pprui));
@@ -35,13 +35,6 @@ HRESULT CRotationUI::s_CreateInstance(_In_ IRotationManager* prm, _COM_Outptr_ I
 }
 
 // IRotationUI
-IFACEMETHODIMP CRotationUI::Initialize(_In_ IDataObject* pdo)
-{
-    // Cache the data object for enumeration later
-    m_spdo = pdo;
-    return S_OK;
-}
-
 IFACEMETHODIMP CRotationUI::Start()
 {
     // Initialize progress dialog text
@@ -158,10 +151,13 @@ IFACEMETHODIMP CRotationUI::OnCompleted()
     return S_OK;
 }
 
-HRESULT CRotationUI::_Initialize(_In_ IRotationManager* prm)
+HRESULT CRotationUI::_Initialize(_In_ IRotationManager* prm, _In_opt_ IDataObject* pdo)
 {
     // Cache the rotation manager
     m_sprm = prm;
+
+    // Cache the data object for enumeration later
+    m_spdo = pdo;
 
     // Subscribe to rotation manager events
     HRESULT hr = m_sprm->Advise(this, &m_cookie);

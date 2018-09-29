@@ -73,7 +73,6 @@ public:
 interface __declspec(uuid("39EEEC7B-81B4-4719-90E1-37D70059724C")) IRotationUI : public IUnknown
 {
 public:
-    IFACEMETHOD(Initialize)(_In_ IDataObject* pdo) = 0;
     IFACEMETHOD(Start)() = 0;
     IFACEMETHOD(Close)() = 0;
 };

@@ -130,14 +130,10 @@ DWORD WINAPI CJPEGAutoRotatorMenu::s_RotationUIThreadProc(_In_ void* pData)
         {
             // Create the rotation UI instance and pass the rotation manager
             CComPtr<IRotationUI> sprui;
-            if (SUCCEEDED(CRotationUI::s_CreateInstance(sprm, &sprui)))
+            if (SUCCEEDED(CRotationUI::s_CreateInstance(sprm, spdo, &sprui)))
             {
-                if (SUCCEEDED(sprui->Initialize(spdo)))
-                {
-                    // Call blocks until we are done
-                    sprui->Start();
-                }
-                
+                // Call blocks until we are done
+                sprui->Start();
                 sprui->Close();
             }
         }
