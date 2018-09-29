@@ -17,7 +17,7 @@ Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8. 
 
 ### Command Line
 A command line version (JPEGAutoRotator.exe) is also available which provides much more control over the operation that is performed.
-
+```
 USAGE:
   JPEGAutoRotator [Options] Path
 
@@ -40,3 +40,4 @@ Examples:
   > JPEGAutoRotator c:\bar\*.jpg
   > JPEGAutoRotator -ShowProgress -Stats c:\test\
   > JPEGAutoRotator -Preview -LosslessOnly -NoSubFolders c:\test\
+```
