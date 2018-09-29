@@ -45,13 +45,13 @@ IFACEMETHODIMP CRotationUI::Initialize(_In_ IDataObject* pdo)
 IFACEMETHODIMP CRotationUI::Start()
 {
     // Initialize progress dialog text
-    WCHAR szResource[100] = { 0 };
-    LoadString(g_hInst, IDS_AUTOROTATOR, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetTitle(szResource);
-    LoadString(g_hInst, IDS_LOADING, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetLine(1, szResource, FALSE, nullptr);
-    LoadString(g_hInst, IDS_CANCELING, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetCancelMsg(szResource, nullptr);
+    wchar_t resource[100] = { 0 };
+    LoadString(g_hInst, IDS_AUTOROTATOR, resource, ARRAYSIZE(resource));
+    m_sppd->SetTitle(resource);
+    LoadString(g_hInst, IDS_LOADING, resource, ARRAYSIZE(resource));
+    m_sppd->SetLine(1, resource, FALSE, nullptr);
+    LoadString(g_hInst, IDS_CANCELING, resource, ARRAYSIZE(resource));
+    m_sppd->SetCancelMsg(resource, nullptr);
 
     // Start progress dialog
     m_sppd->StartProgressDialog(nullptr, nullptr, PROGDLG_NORMAL | PROGDLG_MODAL | PROGDLG_AUTOTIME, nullptr);
@@ -67,8 +67,8 @@ IFACEMETHODIMP CRotationUI::Start()
     }
 
     // Update progress dialog line to show we are now rotating
-    LoadString(g_hInst, IDS_AUTOROTATING, szResource, ARRAYSIZE(szResource));
-    m_sppd->SetLine(1, szResource, FALSE, nullptr);
+    LoadString(g_hInst, IDS_AUTOROTATING, resource, ARRAYSIZE(resource));
+    m_sppd->SetLine(1, resource, FALSE, nullptr);
 
     // Start operation.  Here we will block but we should get reentered in our event callback.
     // That way we can update the progress dialog, check the cancel state and notify the 
@@ -94,21 +94,21 @@ IFACEMETHODIMP CRotationUI::OnItemAdded(_In_ UINT)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnItemProcessed(_In_ UINT uIndex)
+IFACEMETHODIMP CRotationUI::OnItemProcessed(_In_ UINT index)
 {
     _CheckIfCanceled();
 
     // Update the item in our list view
     if (m_sprm)
     {
-        CComPtr<IRotationItem> spri;
-        if (SUCCEEDED(m_sprm->GetItem(uIndex, &spri)))
+        CComPtr<IRotationItem> spItem;
+        if (SUCCEEDED(m_sprm->GetItem(index, &spItem)))
         {
             BOOL wasRotated = FALSE;
-            if (SUCCEEDED(spri->get_WasRotated(&wasRotated)) && wasRotated)
+            if (SUCCEEDED(spItem->get_WasRotated(&wasRotated)) && wasRotated)
             {
                 PWSTR path = nullptr;
-                if (SUCCEEDED(spri->get_Path(&path)))
+                if (SUCCEEDED(spItem->get_Path(&path)))
                 {
                     // Notify the Shell to update the thumbnail
                     SHChangeNotify(SHCNE_UPDATEITEM, (SHCNF_PATH | SHCNF_FLUSHNOWAIT), path, nullptr);
@@ -121,21 +121,21 @@ IFACEMETHODIMP CRotationUI::OnItemProcessed(_In_ UINT uIndex)
     return S_OK;
 }
 
-IFACEMETHODIMP CRotationUI::OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal)
+IFACEMETHODIMP CRotationUI::OnProgress(_In_ UINT completed, _In_ UINT total)
 {
     _CheckIfCanceled();
 
     if (m_sppd)
     {
         // Update text in progress dialog
-        WCHAR szProgress[100] = { 0 };
-        WCHAR szResource[100] = { 0 };
-        LoadString(g_hInst, IDS_ROTATEPROGRESS, szResource, ARRAYSIZE(szResource));
-        if (SUCCEEDED(StringCchPrintf(szProgress, ARRAYSIZE(szProgress), szResource, uCompleted, uTotal)))
+        wchar_t progress[100] = { 0 };
+        wchar_t resource[100] = { 0 };
+        LoadString(g_hInst, IDS_ROTATEPROGRESS, resource, ARRAYSIZE(resource));
+        if (SUCCEEDED(StringCchPrintf(progress, ARRAYSIZE(progress), resource, completed, total)))
         {
-            m_sppd->SetLine(2, szProgress, FALSE, nullptr);
+            m_sppd->SetLine(2, progress, FALSE, nullptr);
         }
-        m_sppd->SetProgress(uCompleted, uTotal);
+        m_sppd->SetProgress(completed, total);
     }
     return S_OK;
 }
@@ -164,7 +164,7 @@ HRESULT CRotationUI::_Initialize(_In_ IRotationManager* prm)
     m_sprm = prm;
 
     // Subscribe to rotation manager events
-    HRESULT hr = m_sprm->Advise(this, &m_dwCookie);
+    HRESULT hr = m_sprm->Advise(this, &m_cookie);
     if (SUCCEEDED(hr))
     {
         // Create the progress dialog we will show during the operation
@@ -199,10 +199,10 @@ void CRotationUI::_Cleanup()
         m_sprm->Cancel();
 
         // Be sure we UnAdvise to the manager is not holding a ref on us
-        if (m_dwCookie != 0)
+        if (m_cookie != 0)
         {
-            m_sprm->UnAdvise(m_dwCookie);
-            m_dwCookie = 0;
+            m_sprm->UnAdvise(m_cookie);
+            m_cookie = 0;
         }
     }
 

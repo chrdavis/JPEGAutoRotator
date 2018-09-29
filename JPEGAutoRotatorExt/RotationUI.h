@@ -25,17 +25,17 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IRotationUI
@@ -44,9 +44,9 @@ public:
     IFACEMETHODIMP Close();
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnItemAdded(_In_ UINT uIndex);
-    IFACEMETHODIMP OnItemProcessed(_In_ UINT uIndex);
-    IFACEMETHODIMP OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal);
+    IFACEMETHODIMP OnItemAdded(_In_ UINT index);
+    IFACEMETHODIMP OnItemProcessed(_In_ UINT index);
+    IFACEMETHODIMP OnProgress(_In_ UINT completed, _In_ UINT total);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
@@ -59,9 +59,8 @@ private:
     void _Cleanup();
     void _CheckIfCanceled();
 
-    HWND m_hwndWorker = 0;
-    long m_cRef = 1;
-    DWORD m_dwCookie = 0;
+    long m_refCount = 1;
+    DWORD m_cookie = 0;
     CComPtr<IRotationManager> m_sprm;
     CComPtr<IProgressDialog> m_sppd;
     CComPtr<IDataObject> m_spdo;

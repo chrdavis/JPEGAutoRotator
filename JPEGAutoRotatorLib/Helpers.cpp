@@ -24,19 +24,19 @@ HRESULT EnumerateDataObject(_In_ IDataObject* pdo, _In_ IRotationManager* prm, _
 
 bool IsJPEG(_In_ PCWSTR path)
 {
-    PCWSTR pszExt = PathFindExtension(path);
-    return (pszExt && (StrCmpI(pszExt, L".jpeg") == 0 || StrCmpI(pszExt, L".jpg") == 0));
+    PCWSTR fileExt = PathFindExtension(path);
+    return (fileExt && (StrCmpI(fileExt, L".jpeg") == 0 || StrCmpI(fileExt, L".jpg") == 0));
 }
 
 HRESULT AddPathToRotatonManager(_In_ IRotationManager* prm, _In_ PCWSTR path)
 {
-    CComPtr<IRotationItemFactory> sprif;
-    HRESULT hr = prm->GetRotationItemFactory(&sprif);
+    CComPtr<IRotationItemFactory> spRotationItemFactory;
+    HRESULT hr = prm->GetRotationItemFactory(&spRotationItemFactory);
     if (SUCCEEDED(hr))
     {
         // Use the rotation manager's rotation item factory to create a new IRotationItem
         CComPtr<IRotationItem> spriNew;
-        if (SUCCEEDED(sprif->Create(&spriNew)))
+        if (SUCCEEDED(spRotationItemFactory->Create(&spriNew)))
         {
             hr = spriNew->put_Path(path);
             if (SUCCEEDED(hr))
@@ -53,7 +53,7 @@ HRESULT AddPathToRotatonManager(_In_ IRotationManager* prm, _In_ PCWSTR path)
 // Just in case setup a maximum folder depth
 #define MAX_ENUM_DEPTH 300
 
-HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, _In_ IRotationManager* prm, _In_ bool enumSubFolders)
+HRESULT ParseEnumItems(_In_ IEnumShellItems* pesi, _In_ UINT depth, _In_ IRotationManager* prm, _In_ bool enumSubFolders)
 {
     HRESULT hr = E_INVALIDARG;
 
@@ -61,8 +61,8 @@ HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, _In_ IRotati
     // regular folders but adding just in case
     if (depth < MAX_ENUM_DEPTH)
     {
-        CComPtr<IRotationItemFactory> sprif;
-        hr = prm->GetRotationItemFactory(&sprif);
+        CComPtr<IRotationItemFactory> spRotationItemFactory;
+        hr = prm->GetRotationItemFactory(&spRotationItemFactory);
         if (SUCCEEDED(hr))
         {
             ULONG celtFetched = 0;
@@ -94,17 +94,17 @@ HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, _In_ IRotati
                     else if (!(att & SFGAO_FOLDER))
                     {
                         // Get the path
-                        PWSTR pszPath = nullptr;
-                        hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszPath);
+                        PWSTR path = nullptr;
+                        hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &path);
                         if (SUCCEEDED(hr))
                         {
                             // Check if this is in fact a JPEG so we don't add items needlessly to the rotation manager.
-                            if (IsJPEG(pszPath))
+                            if (IsJPEG(path))
                             {
-                                hr = AddPathToRotatonManager(prm, pszPath);
+                                hr = AddPathToRotatonManager(prm, path);
                             }
 
-                            CoTaskMemFree(pszPath);
+                            CoTaskMemFree(path);
                         }
                     }
                 }
@@ -116,9 +116,9 @@ HRESULT ParseEnumItems(_In_ IEnumShellItems *pesi, _In_ UINT depth, _In_ IRotati
     return hr;
 }
 
-__inline bool PathIsDotOrDotDot(_In_ PCWSTR pszPath)
+__inline bool PathIsDotOrDotDot(_In_ PCWSTR path)
 {
-    return ((pszPath[0] == L'.') && ((pszPath[1] == L'\0') || ((pszPath[1] == L'.') && (pszPath[2] == L'\0'))));
+    return ((path[0] == L'.') && ((path[1] == L'\0') || ((path[1] == L'.') && (path[2] == L'\0'))));
 }
 
 // Enumerate via the Find* apis and add any JPEG files to the rotation manager
@@ -144,8 +144,8 @@ bool EnumeratePath(_In_ PCWSTR path, _In_ UINT depth, _In_ IRotationManager* prm
             PathCchRemoveFileSpec(parent, ARRAYSIZE(parent));
         }
 
-        CComPtr<IRotationItemFactory> sprif;
-        if (SUCCEEDED(prm->GetRotationItemFactory(&sprif)))
+        CComPtr<IRotationItemFactory> spRotationItemFactory;
+        if (SUCCEEDED(prm->GetRotationItemFactory(&spRotationItemFactory)))
         {
             WIN32_FIND_DATA findData = { 0 };
             HANDLE findHandle = FindFirstFile(searchPath, &findData);
@@ -186,7 +186,6 @@ bool EnumeratePath(_In_ PCWSTR path, _In_ UINT depth, _In_ IRotationManager* prm
     }
     return ret;
 }
-
 
 UINT GetLogicalProcessorCount()
 {

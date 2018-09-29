@@ -8,9 +8,7 @@ extern HINSTANCE g_hInst;
 
 HWND g_hwndParent = 0;
 
-CJPEGAutoRotatorMenu::CJPEGAutoRotatorMenu() :
-    m_cRef(1),
-    m_spdo(nullptr)
+CJPEGAutoRotatorMenu::CJPEGAutoRotatorMenu()
 {
     DllAddRef();
 }
@@ -42,16 +40,16 @@ HRESULT CJPEGAutoRotatorMenu::Initialize(_In_opt_ PCIDLIST_ABSOLUTE, _In_ IDataO
 }
 
 // IContextMenu
-HRESULT CJPEGAutoRotatorMenu::QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uIDFirst, UINT, UINT uFlags)
+HRESULT CJPEGAutoRotatorMenu::QueryContextMenu(HMENU hMenu, UINT index, UINT uIDFirst, UINT, UINT uFlags)
 {
     HRESULT hr = E_UNEXPECTED;
     if (m_spdo)
     {
         if ((uFlags & ~CMF_OPTIMIZEFORINVOKE) && (uFlags & ~(CMF_DEFAULTONLY | CMF_VERBSONLY)))
         {
-            WCHAR szMenuName[64] = { 0 };
-            LoadString(g_hInst, _IsFolder() ? IDS_AUTOROTATEFOLDER : IDS_AUTOROTATEIMAGE, szMenuName, ARRAYSIZE(szMenuName));
-            InsertMenu(hMenu, uIndex, MF_STRING | MF_BYPOSITION, uIDFirst++, L"Auto-Rotate Image");
+            wchar_t menuName[64] = { 0 };
+            LoadString(g_hInst, _IsFolder() ? IDS_AUTOROTATEFOLDER : IDS_AUTOROTATEIMAGE, menuName, ARRAYSIZE(menuName));
+            InsertMenu(hMenu, index, MF_STRING | MF_BYPOSITION, uIDFirst++, menuName);
             hr = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, 1);
         }
     }
@@ -91,24 +89,24 @@ bool CJPEGAutoRotatorMenu::_IsFolder()
         hr = spsia->GetItemAt(0, &spsi);
         if (SUCCEEDED(hr))
         {
-            PWSTR pszFilePath = nullptr;
-            hr = spsi->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+            PWSTR filePath = nullptr;
+            hr = spsi->GetDisplayName(SIGDN_FILESYSPATH, &filePath);
             if (SUCCEEDED(hr))
             {
-                if (GetFileAttributes(pszFilePath) & FILE_ATTRIBUTE_DIRECTORY)
+                if (GetFileAttributes(filePath) & FILE_ATTRIBUTE_DIRECTORY)
                 {
                     isFolder = true;
                 }
                 else
                 {
-                    PCWSTR pszExt = PathFindExtension(pszFilePath);
-                    if (pszExt)
+                    PCWSTR fileExt = PathFindExtension(filePath);
+                    if (fileExt)
                     {
                         isFolder = false;
                     }
                 }
 
-                CoTaskMemFree(pszFilePath);
+                CoTaskMemFree(filePath);
             }
             else
             {

@@ -22,24 +22,24 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IShellExtInit
     STDMETHODIMP Initialize(_In_opt_ PCIDLIST_ABSOLUTE pidlFolder, _In_ IDataObject* pdto, HKEY hkProgID);
 
     // IContextMenu
-    STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT uIndex, UINT uIDFirst, UINT uIDLast, UINT uFlags);
+    STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT index, UINT uIDFirst, UINT uIDLast, UINT uFlags);
     STDMETHODIMP InvokeCommand(_In_ LPCMINVOKECOMMANDINFO pCMI);
     STDMETHODIMP GetCommandString(UINT_PTR, UINT, _In_opt_ UINT*, _In_ LPSTR, UINT)
     {
@@ -51,10 +51,9 @@ public:
 
 private:
     ~CJPEGAutoRotatorMenu();
-
     bool _IsFolder();
 
-    long m_cRef;
+    long m_refCount = 1;
     CComPtr<IDataObject> m_spdo;
 };
 

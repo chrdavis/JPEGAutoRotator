@@ -23,83 +23,83 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IRotationItem
-    IFACEMETHODIMP get_Path(_Outptr_ PWSTR* ppszPath)
+    IFACEMETHODIMP get_Path(_Outptr_ PWSTR* path)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *ppszPath = nullptr;
-        HRESULT hr = m_pszPath ? S_OK : E_FAIL;
+        *path = nullptr;
+        HRESULT hr = m_path ? S_OK : E_FAIL;
         if (SUCCEEDED(hr))
         {
-            hr = SHStrDup(m_pszPath, ppszPath);
+            hr = SHStrDup(m_path, path);
         }
         return hr;
     }
 
-    IFACEMETHODIMP put_Path(_In_ PCWSTR pszPath)
+    IFACEMETHODIMP put_Path(_In_ PCWSTR path)
     {
         CSRWExclusiveAutoLock lock(&m_lock);
-        HRESULT hr = pszPath ? S_OK : E_INVALIDARG;
+        HRESULT hr = path ? S_OK : E_INVALIDARG;
         if (SUCCEEDED(hr))
         {
-            CoTaskMemFree(m_pszPath);
-            hr = SHStrDup(pszPath, &m_pszPath);
+            CoTaskMemFree(m_path);
+            hr = SHStrDup(path, &m_path);
         }
         return hr;
     }
 
-    IFACEMETHODIMP get_WasRotated(_Out_ BOOL* pfWasRotated)
+    IFACEMETHODIMP get_WasRotated(_Out_ BOOL* wasRotated)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *pfWasRotated = m_fWasRotated;
+        *wasRotated = m_wasRotated;
         return S_OK;
     }
 
-    IFACEMETHODIMP get_IsValidJPEG(_Out_ BOOL* pfIsValidJPEG)
+    IFACEMETHODIMP get_IsValidJPEG(_Out_ BOOL* isValidJPEG)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *pfIsValidJPEG = m_fIsValidJPEG;
+        *isValidJPEG = m_isValidJPEG;
         return S_OK;
     }
 
-    IFACEMETHODIMP get_IsRotationLossless(_Out_ BOOL* pfIsRotationLossless)
+    IFACEMETHODIMP get_IsRotationLossless(_Out_ BOOL* isRotationLossless)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *pfIsRotationLossless = m_fIsRotationLossless;
+        *isRotationLossless = m_isRotationLossless;
         return S_OK;
     }
 
-    IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* puOriginalOrientation)
+    IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* originalOrientation)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *puOriginalOrientation = m_uOriginalOrientation;
+        *originalOrientation = m_originalOrientation;
         return S_OK;
     }
 
-    IFACEMETHODIMP get_Result(_Out_ HRESULT* phrResult)
+    IFACEMETHODIMP get_Result(_Out_ HRESULT* result)
     {
         CSRWSharedAutoLock lock(&m_lock);
-        *phrResult = m_hrResult;
+        *result = m_result;
         return S_OK;
     }
 
-    IFACEMETHODIMP put_Result(_In_ HRESULT hrResult)
+    IFACEMETHODIMP put_Result(_In_ HRESULT result)
     {
         CSRWExclusiveAutoLock lock(&m_lock);
-        m_hrResult = hrResult;
+        m_result = result;
         return S_OK;
     }
 
@@ -114,24 +114,24 @@ public:
     }
 
     // IRotationItemFactory
-    IFACEMETHODIMP Create(_COM_Outptr_ IRotationItem** ppri)
+    IFACEMETHODIMP Create(_COM_Outptr_ IRotationItem** ppItem)
     {
-        return CMockRotationItem::s_CreateInstance(L"", ppri);
+        return CMockRotationItem::s_CreateInstance(L"", ppItem);
     }
 
-    HRESULT s_CreateInstance(_In_ PCWSTR pszPath, _COM_Outptr_ IRotationItem** ppri)
+    HRESULT s_CreateInstance(_In_ PCWSTR path, _COM_Outptr_ IRotationItem** ppItem)
     {
-        *ppri = nullptr;
-        CMockRotationItem* pri = new CMockRotationItem();
-        HRESULT hr = pri ? S_OK : E_OUTOFMEMORY;
+        *ppItem = nullptr;
+        CMockRotationItem* pItem = new CMockRotationItem();
+        HRESULT hr = pItem ? S_OK : E_OUTOFMEMORY;
         if (SUCCEEDED(hr))
         {
-            hr = pri->put_Path(pszPath);
+            hr = pItem->put_Path(path);
             if (SUCCEEDED(hr))
             {
-                hr = pri->QueryInterface(IID_PPV_ARGS(ppri));
+                hr = pItem->QueryInterface(IID_PPV_ARGS(ppItem));
             }
-            pri->Release();
+            pItem->Release();
         }
         return hr;
     }
@@ -139,19 +139,19 @@ public:
 private:
     ~CMockRotationItem()
     {
-        CoTaskMemFree(m_pszPath);
+        CoTaskMemFree(m_path);
     }
 
 private:
-    long m_cRef = 1;
+    long m_refCount = 1;
     CSRWLock m_lock;
-    PWSTR m_pszPath = nullptr;
+    PWSTR m_path = nullptr;
 
 public:
-    bool m_fWasRotated = false;
-    bool m_fIsValidJPEG = false;
-    bool m_fIsRotationLossless = true;
-    UINT m_uOriginalOrientation = 1;
-    HRESULT m_hrResult = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
+    bool m_wasRotated = false;
+    bool m_isValidJPEG = false;
+    bool m_isRotationLossless = true;
+    UINT m_originalOrientation = 1;
+    HRESULT m_result = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
 };
 

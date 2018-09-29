@@ -25,53 +25,53 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IRotationItem
-    IFACEMETHODIMP get_Path(_Outptr_ PWSTR* ppszPath);
-    IFACEMETHODIMP put_Path(_In_ PCWSTR pszPath);
-    IFACEMETHODIMP get_WasRotated(_Out_ BOOL* pfWasRotated);
-    IFACEMETHODIMP get_IsValidJPEG(_Out_ BOOL* pfIsValidJPEG);
-    IFACEMETHODIMP get_IsRotationLossless(_Out_ BOOL* pfIsRotationLossless);
-    IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* puOriginalOrientation);
-    IFACEMETHODIMP get_Result(_Out_ HRESULT* phrResult);
-    IFACEMETHODIMP put_Result(_In_ HRESULT hrResult);
+    IFACEMETHODIMP get_Path(_Outptr_ PWSTR* path);
+    IFACEMETHODIMP put_Path(_In_ PCWSTR path);
+    IFACEMETHODIMP get_WasRotated(_Out_ BOOL* wasRotated);
+    IFACEMETHODIMP get_IsValidJPEG(_Out_ BOOL* isValidJPEG);
+    IFACEMETHODIMP get_IsRotationLossless(_Out_ BOOL* isRotationLossless);
+    IFACEMETHODIMP get_OriginalOrientation(_Out_ UINT* originalOrientation);
+    IFACEMETHODIMP get_Result(_Out_ HRESULT* result);
+    IFACEMETHODIMP put_Result(_In_ HRESULT result);
     IFACEMETHODIMP Load();
     IFACEMETHODIMP Rotate();
 
     // IRotationItemFactory
-    IFACEMETHODIMP Create(_COM_Outptr_ IRotationItem** ppri)
+    IFACEMETHODIMP Create(_COM_Outptr_ IRotationItem** ppItem)
     {
-        return CRotationItem::s_CreateInstance(L"", ppri);
+        return CRotationItem::s_CreateInstance(L"", ppItem);
     }
 
-    static HRESULT s_CreateInstance(_In_ PCWSTR pszPath, _COM_Outptr_ IRotationItem** ppri);
+    static HRESULT s_CreateInstance(_In_ PCWSTR path, _COM_Outptr_ IRotationItem** ppItem);
 
 private:
     ~CRotationItem();
 
 private:
-    long m_cRef = 1;
-    PWSTR m_pszPath = nullptr;
-    bool m_fWasRotated = false;
-    bool m_fIsValidJPEG = false;
-    bool m_fIsRotationLossless = true;
+    long m_refCount = 1;
+    PWSTR m_path = nullptr;
+    bool m_wasRotated = false;
+    bool m_isValidJPEG = false;
+    bool m_isRotationLossless = true;
     bool m_loaded = false;
-    UINT m_uOriginalOrientation = 1;
-    HRESULT m_hrResult = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
+    UINT m_originalOrientation = 1;
+    HRESULT m_result = S_FALSE;  // We init to S_FALSE which means Not Run Yet.  S_OK on success.  Otherwise an error code.
     CSRWLock m_lock;
-    static UINT s_uTagOrientationPropSize;
+    static UINT s_tagOrientationPropSize;
 };
 
 // Maximum number of running worker threads
@@ -79,7 +79,7 @@ private:
 #define MAX_ROTATION_WORKER_THREADS 64
 
 // Minimum amount of work to schedule to a worker thread
-#define MIN_ROTATION_WORK_SIZE 5
+#define MIN_ROTATION_WORK_SIZE 10
 
 class CRotationManager : 
     public IRotationManager,
@@ -104,51 +104,51 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IRotationManager
-    IFACEMETHODIMP Advise(_In_ IRotationManagerEvents* prme, _Out_ DWORD* pdwCookie);
-    IFACEMETHODIMP UnAdvise(_In_ DWORD dwCookie);
+    IFACEMETHODIMP Advise(_In_ IRotationManagerEvents* pEvents, _Out_ DWORD* cookie);
+    IFACEMETHODIMP UnAdvise(_In_ DWORD cookie);
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Cancel();
     IFACEMETHODIMP Shutdown();
-    IFACEMETHODIMP AddItem(_In_ IRotationItem* pri);
-    IFACEMETHODIMP GetItem(_In_ UINT uIndex, _COM_Outptr_ IRotationItem** ppri);
-    IFACEMETHODIMP GetItemCount(_Out_ UINT* puCount);
-    IFACEMETHODIMP SetRotationItemFactory(_In_ IRotationItemFactory* prif);
-    IFACEMETHODIMP GetRotationItemFactory(_In_ IRotationItemFactory** pprif);
+    IFACEMETHODIMP AddItem(_In_ IRotationItem* pItem);
+    IFACEMETHODIMP GetItem(_In_ UINT index, _COM_Outptr_ IRotationItem** ppItem);
+    IFACEMETHODIMP GetItemCount(_Out_ UINT* count);
+    IFACEMETHODIMP SetRotationItemFactory(_In_ IRotationItemFactory* pItemFactory);
+    IFACEMETHODIMP GetRotationItemFactory(_In_ IRotationItemFactory** ppItemFactory);
 
     // IRotationManagerDiagnostics
-    IFACEMETHODIMP get_EnumerateSubFolders(_Out_ BOOL* pEnumSubFolders);
+    IFACEMETHODIMP get_EnumerateSubFolders(_Out_ BOOL* enumSubFolders);
     IFACEMETHODIMP put_EnumerateSubFolders(_In_ BOOL enumSubFolders);
-    IFACEMETHODIMP get_LosslessOnly(_Out_ BOOL* pLosslessOnly);
+    IFACEMETHODIMP get_LosslessOnly(_Out_ BOOL* losslessOnly);
     IFACEMETHODIMP put_LosslessOnly(_In_ BOOL losslessOnly);
-    IFACEMETHODIMP get_PreviewOnly(_Out_ BOOL* pPreviewOnly);
+    IFACEMETHODIMP get_PreviewOnly(_Out_ BOOL* previewOnly);
     IFACEMETHODIMP put_PreviewOnly(_In_ BOOL previewOnly);
-    IFACEMETHODIMP get_MaxWorkerThreadCount(_Out_ UINT* puMaxThreadCount);
-    IFACEMETHODIMP put_MaxWorkerThreadCount(_In_ UINT uMaxThreadCount);
-    IFACEMETHODIMP get_WorkerThreadCount(_Out_ UINT* puThreadCount);
-    IFACEMETHODIMP put_WorkerThreadCount(_In_ UINT uThreadCount);
-    IFACEMETHODIMP get_MinItemsPerWorkerThread(_Out_ UINT* puMinItemsPerThread);
-    IFACEMETHODIMP put_MinItemsPerWorkerThread(_In_ UINT uMinItemsPerThread);
-    IFACEMETHODIMP get_ItemsPerWorkerThread(_Out_ UINT* puNumItemsPerThread);
-    IFACEMETHODIMP put_ItemsPerWorkerThread(_In_ UINT uNumItemsPerThread);
+    IFACEMETHODIMP get_MaxWorkerThreadCount(_Out_ UINT* maxThreadCount);
+    IFACEMETHODIMP put_MaxWorkerThreadCount(_In_ UINT maxThreadCount);
+    IFACEMETHODIMP get_WorkerThreadCount(_Out_ UINT* threadCount);
+    IFACEMETHODIMP put_WorkerThreadCount(_In_ UINT threadCount);
+    IFACEMETHODIMP get_MinItemsPerWorkerThread(_Out_ UINT* minItemsPerThread);
+    IFACEMETHODIMP put_MinItemsPerWorkerThread(_In_ UINT minItemsPerThread);
+    IFACEMETHODIMP get_ItemsPerWorkerThread(_Out_ UINT* numItemsPerThread);
+    IFACEMETHODIMP put_ItemsPerWorkerThread(_In_ UINT numItemsPerThread);
 
     // IRotationManagerEvents
-    IFACEMETHODIMP OnItemAdded(_In_ UINT uIndex);
-    IFACEMETHODIMP OnItemProcessed(_In_ UINT uIndex);
-    IFACEMETHODIMP OnProgress(_In_ UINT uCompleted, _In_ UINT uTotal);
+    IFACEMETHODIMP OnItemAdded(_In_ UINT index);
+    IFACEMETHODIMP OnItemProcessed(_In_ UINT index);
+    IFACEMETHODIMP OnProgress(_In_ UINT completed, _In_ UINT total);
     IFACEMETHODIMP OnCanceled();
     IFACEMETHODIMP OnCompleted();
 
@@ -171,36 +171,36 @@ private:
 private:
     struct ROTATION_WORKER_THREAD_INFO
     {
-        HANDLE hWorker;
-        DWORD dwThreadId;
-        UINT uCompletedItems;
-        UINT uTotalItems;
+        HANDLE workerHandle;
+        DWORD threadId;
+        UINT processedItems;
+        UINT totalItems;
     };
 
     struct ROTATION_MANAGER_EVENT
     {
-        IRotationManagerEvents* prme;
-        DWORD dwCookie;
+        IRotationManagerEvents* pEvents;
+        DWORD cookie;
     };
 
-    long  m_cRef = 1;
+    long  m_refCount = 1;
     ROTATION_WORKER_THREAD_INFO m_workerThreadInfo[MAX_ROTATION_WORKER_THREADS];
     HANDLE m_workerThreadHandles[MAX_ROTATION_WORKER_THREADS];
-    UINT m_uWorkerThreadCount = 0;
-    UINT m_uMaxWorkerThreadCount = MAX_ROTATION_WORKER_THREADS;
-    UINT m_uMinItemsPerWorkerThread = 0;
-    UINT m_uMaxItemsPerWorkerThread = 0;
-    UINT m_uItemsPerWorkerThread = 0;
+    UINT m_workerThreadCount = 0;
+    UINT m_maxWorkerThreadCount = MAX_ROTATION_WORKER_THREADS;
+    UINT m_minItemsPerWorkerThread = 0;
+    UINT m_maxItemsPerWorkerThread = 0;
+    UINT m_itemsPerWorkerThread = 0;
     bool m_previewOnly = false;
     bool m_losslessOnly = false;
     bool m_enumSubFolders = true;
     ULONG_PTR m_gdiplusToken;
-    HANDLE m_hCancelEvent = nullptr;
-    HANDLE m_hStartEvent = nullptr;
-    DWORD m_dwCookie = 0;
+    HANDLE m_cancelEvent = nullptr;
+    HANDLE m_startEvent = nullptr;
+    DWORD m_cookie = 0;
     CSRWLock m_lockEvents;
     CSRWLock m_lockItems;
-    CComPtr<IRotationItemFactory> m_sprif;
+    CComPtr<IRotationItemFactory> m_spItemFactory;
     _Guarded_by_(m_lockEvents) std::vector<ROTATION_MANAGER_EVENT> m_rotationManagerEvents;
     _Guarded_by_(m_lockItems) std::vector<IRotationItem*> m_rotationItems;
 };

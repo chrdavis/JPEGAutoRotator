@@ -28,17 +28,17 @@ namespace JPEGAutoRotatorUnitTests
             Assert::IsTrue(CRotationManager::s_CreateInstance(&sprm) == S_OK);
             for (int i = 0; i < 100; i++)
             {
-                CComPtr<IRotationItem> spri;
+                CComPtr<IRotationItem> spItem;
                 CMockRotationItem *pmri = new CMockRotationItem();
-                pmri->m_fIsValidJPEG = true;
-                pmri->m_fWasRotated = true;
-                pmri->m_hrResult = S_FALSE;
-                pmri->m_uOriginalOrientation = 2;
-                pmri->QueryInterface(IID_PPV_ARGS(&spri));
+                pmri->m_isValidJPEG = true;
+                pmri->m_wasRotated = true;
+                pmri->m_result = S_FALSE;
+                pmri->m_originalOrientation = 2;
+                pmri->QueryInterface(IID_PPV_ARGS(&spItem));
                 wchar_t path[MAX_PATH] = { 0 };
                 Assert::IsTrue(StringCchPrintf(path, ARRAYSIZE(path), L"foo%d.jpg", i) == S_OK);
-                Assert::IsTrue(spri->put_Path(path) == S_OK);
-                Assert::IsTrue(sprm->AddItem(spri) == S_OK);
+                Assert::IsTrue(spItem->put_Path(path) == S_OK);
+                Assert::IsTrue(sprm->AddItem(spItem) == S_OK);
                 pmri->Release();
             }
 

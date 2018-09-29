@@ -8,7 +8,7 @@ class CJPEGAutoRotatorClassFactory : public IClassFactory
 {
 public:
     CJPEGAutoRotatorClassFactory(_In_ REFCLSID clsid) : 
-        m_cRef(1),
+        m_refCount(1),
         m_clsid(clsid)
     {
         DllAddRef();
@@ -27,17 +27,17 @@ public:
 
     IFACEMETHODIMP_(ULONG) AddRef()
     {
-        return InterlockedIncrement(&m_cRef);
+        return InterlockedIncrement(&m_refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release()
     {
-        LONG cRef = InterlockedDecrement(&m_cRef);
-        if (cRef == 0)
+        LONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
         {
             delete this;
         }
-        return cRef;
+        return refCount;
     }
 
     // IClassFactory methods
@@ -82,7 +82,7 @@ private:
         DllRelease();
     }
 
-    long m_cRef;
+    long m_refCount;
     CLSID m_clsid;
 };
 
