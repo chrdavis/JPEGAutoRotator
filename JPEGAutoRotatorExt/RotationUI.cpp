@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "RotationUI.h"
-#include "RotationManager.h"
-#include "Helpers.h"
+#include <RotationManager.h>
+#include <Helpers.h>
 #include <strsafe.h>
 #include "resource.h"
 

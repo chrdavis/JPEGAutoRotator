@@ -3,9 +3,6 @@
 #include "helpers.h"
 #include <gdiplus.h>
 
-extern void DllAddRef();
-extern void DllRelease();
-
 extern HINSTANCE g_hInst;
 
 using namespace Gdiplus;

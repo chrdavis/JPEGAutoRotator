@@ -19,11 +19,3 @@ bool GetTestFolderPath(_In_ PCWSTR testFolderPathAppend, _In_ UINT testFolderPat
 
 bool CopyHelper(_In_ PCWSTR src, _In_ PCWSTR dest);
 bool DeleteHelper(_In_ PCWSTR path);
-
-void DllAddRef()
-{
-}
-
-void DllRelease()
-{
-}
