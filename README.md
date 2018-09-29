@@ -14,6 +14,11 @@ The code takes advantage of systems with multiple processors/cores by paralleliz
 
 Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8.  Almost all modern digital cameras produce images of such size.
 
+#### Screenshots
+
+![Image description](/images/JPEGAutoRotator_ContextMenu1.png)
+
+![Image description](/images/JPEGAutoRotator_ContextMenu_Progress.png)
 
 ### Command Line
 A command line version (JPEGAutoRotator.exe) is also available which provides much more control over the operation that is performed.
