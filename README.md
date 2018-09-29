@@ -7,7 +7,7 @@ Feel free to donate if you find this useful.
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=727QPFYPDHRKU&lc=US&item_name=Chris%20Davis&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
 
-### Windows Shell Extensions
+### Windows Shell Context Menu Extension
 JPEGAutoRotator will appear in the context menu when you right-click single or multiple images (as well as folders that are treated as image folders).  The contents of sub folders are also enumerated and rotated as necessary.  JPEGAutoRotator will show progress UI if the operation takes more than a couple of seconds.  
 
 The code takes advantage of systems with multiple processors/cores by parallelizing the work across multiple threads resulting in faster execution.
