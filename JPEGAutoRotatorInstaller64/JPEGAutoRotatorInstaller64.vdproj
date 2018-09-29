@@ -25,6 +25,12 @@
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_862C5129890046CE84F7D41324A8EE0A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -152,6 +158,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_862C5129890046CE84F7D41324A8EE0A"
+            {
+            "SourcePath" = "8:..\\x64\\Release\\JPEGAutoRotator.exe"
+            "TargetName" = "8:JPEGAutoRotator.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_C4970F61FF3B436ABBFC21F0A928DE2A"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -220,11 +246,11 @@
         "Manufacturer" = "8:Chris Davis"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:JPEGAutoRotatorInstaller64"
+        "Title" = "8:JPEGAutoRotator"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Chris Davis"
         "Keywords" = "8:"
-        "ARPCOMMENTS" = "8:"
+        "ARPCOMMENTS" = "8:JPEGAutoRotator is a tool to normalize images rotated via the JPEG EXIF orientation property.  The property is removed and the actual image is rotated to its intended orientation."
         "ARPURLINFOABOUT" = "8:"
         "ARPPRODUCTICON" = "8:"
         "ARPIconIndex" = "3:0"
