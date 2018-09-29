@@ -46,3 +46,15 @@ Examples:
   > JPEGAutoRotator -ShowProgress -Stats c:\test\
   > JPEGAutoRotator -Preview -LosslessOnly -NoSubFolders c:\test\
 ```
+
+#### Example
+```
+JPEGAutoRotator.exe -Progress -Stats "D:\Pictures\Iceland Pix\"
+Processed 1009 of 1009 items...
+Number of items processed:      1009
+Number of valid JPEGs:          1009
+Number of JPEGs rotated:        198
+
+Worker Threads: 8
+Max Items Per Thread:   126
+```
