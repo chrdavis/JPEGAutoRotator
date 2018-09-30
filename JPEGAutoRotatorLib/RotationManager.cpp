@@ -712,31 +712,30 @@ HRESULT CRotationManager::_GetWorkerThreadDimensions()
             // Determine the best number of threads based on the number of items to rotate
             // and our minimum number of items per worker thread
 
-            // How many work item sized amounts of items do we have?
-            UINT totalWorkItems = max(1, (totalItems / MIN_ROTATION_WORK_SIZE));
-
             // Have we already determined our worker thread count?
             if (m_workerThreadCount == 0)
             {
-                // How many worker threads do we require, with a minimum being the max worker threads value
-                UINT idealWorkerThreadCount = (totalWorkItems / m_maxWorkerThreadCount);
-                if ((totalWorkItems % m_maxWorkerThreadCount) > 0)
-                {
-                    idealWorkerThreadCount++;
-                }
+                // How many work item sized chunks of items do we have?  Ignore remainder for now.
+                // Think of a work chunk as the minimum amount of items you would put on a worker
+                // thread.  Less than this would result in perf degradation due to the cost of 
+                // standing up the worker thread instead of running it with other work on another thread.
+                UINT totalWorkChunks = max(1, (totalItems / max(1, m_minItemsPerWorkerThread)));
 
-                // Ensure we don't exceed m_maxWorkerThreadCount
-                m_workerThreadCount = min(idealWorkerThreadCount, m_maxWorkerThreadCount);
+                // Ensure we don't exceed m_maxWorkerThreadCount. Also ensure if we have less than
+                // m_minItemsPerWorkerThread items that we default to 1 worker thread.
+                m_workerThreadCount = max(1, min(totalWorkChunks, m_maxWorkerThreadCount));
             }
 
             // Have we already determined the number of items per worker thread?
             if (m_itemsPerWorkerThread == 0)
             {
-                // Now determine the number of items per worker
+                // Now determine the number of items per worker thread
                 m_itemsPerWorkerThread = (totalItems / m_workerThreadCount);
-                if (m_itemsPerWorkerThread == 0)
+                if ((totalItems % m_workerThreadCount) > 0)
                 {
-                    m_itemsPerWorkerThread = totalItems % m_workerThreadCount;
+                    // Take into account the leftover items.  This will spread the remainder over
+                    // some of the threads.
+                    m_itemsPerWorkerThread++;
                 }
             }
         }

@@ -188,8 +188,7 @@ private:
     HANDLE m_workerThreadHandles[MAX_ROTATION_WORKER_THREADS];
     UINT m_workerThreadCount = 0;
     UINT m_maxWorkerThreadCount = MAX_ROTATION_WORKER_THREADS;
-    UINT m_minItemsPerWorkerThread = 0;
-    UINT m_maxItemsPerWorkerThread = 0;
+    UINT m_minItemsPerWorkerThread = MIN_ROTATION_WORK_SIZE;
     UINT m_itemsPerWorkerThread = 0;
     bool m_previewOnly = false;
     bool m_losslessOnly = false;
