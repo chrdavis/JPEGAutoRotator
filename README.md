@@ -14,9 +14,14 @@ The code takes advantage of systems with multiple processors/cores by paralleliz
 
 Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8.  Almost all modern digital cameras produce images of such size.
 
+#### Screenshots
+
+![Image description](/Images/JPEGAutoRotator_ContextMenu1.png)
+
+![Image description](/Images/JPEGAutoRotator_ContextMenu_Progress.png)
 
 ### Command Line
-A command line version (JPEGAutoRotator.exe) is also available which provides much more control over the operation that is performed.
+A command line version (JPEGAutoRotator.exe) is also available which provides more control over the operation that is performed.
 ```
 USAGE:
   JPEGAutoRotator [Options] Path
@@ -40,4 +45,18 @@ Examples:
   > JPEGAutoRotator c:\bar\*.jpg
   > JPEGAutoRotator -ShowProgress -Stats c:\test\
   > JPEGAutoRotator -Preview -LosslessOnly -NoSubFolders c:\test\
+```
+
+#### Example
+```
+JPEGAutoRotator.exe -Progress -Stats "D:\Pictures\Iceland Pix\"
+Processed 1009 of 1009 items...
+Number of items processed:      1009
+Number of valid JPEGs:          1009
+Number of JPEGs rotated:        198
+
+Worker Threads: 8
+Max Items Per Thread: 126
+
+Operation took: 55703 ms
 ```
