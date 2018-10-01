@@ -9,4 +9,9 @@
 #include <atlbase.h>
 #include <Shobjidl.h>
 #include <Shlobj.h>
+#pragma warning(push, 3)   // Ignore warnings from GDIPlus headers
+#include <gdiplus.h>
+#pragma warning(pop)
+#include <strsafe.h>
+#include <pathcch.h>
 

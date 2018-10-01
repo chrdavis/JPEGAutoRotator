@@ -2,7 +2,6 @@
 #include "RotationUI.h"
 #include <RotationManager.h>
 #include <Helpers.h>
-#include <strsafe.h>
 #include "resource.h"
 
 extern HINSTANCE g_hInst;
@@ -54,8 +53,7 @@ IFACEMETHODIMP CRotationUI::Start()
     if (m_spdo)
     {
         // Enumerate the data object and add all items to the rotation manager
-        // TODO: Update to respect user setting to not enumerate subfolders?
-        EnumerateDataObject(m_spdo, m_sprm, true);
+        EnumerateDataObject(m_spdo, m_sprm);
         m_spdo = nullptr;
     }
 

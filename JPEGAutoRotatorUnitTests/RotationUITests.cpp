@@ -1,10 +1,8 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 #include <RotationInterfaces.h>
 #include <RotationManager.h>
 #include "MockRotationItem.h"
 #include <RotationUI.h>
-#include <strsafe.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

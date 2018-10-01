@@ -1,9 +1,6 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 #include <RotationInterfaces.h>
 #include <RotationManager.h>
-#include <pathcch.h>
-#include <strsafe.h>
 #include "MockRotationItem.h"
 #include "MockRotationManagerEvents.h"
 
@@ -154,7 +151,7 @@ namespace JPEGAutoRotatorUnitTests
             DeleteHelper(testFolderWorking);
         }
 
-        TEST_METHOD(RotateAllConfigurationsTest)
+        TEST_METHOD(RotateAllOrientationsTest)
         {
             // Get test file source folder
             wchar_t testFolderSource[MAX_PATH] = { 0 };
@@ -362,6 +359,140 @@ namespace JPEGAutoRotatorUnitTests
             Assert::IsTrue(isValidJPEG == g_rgTestFileData[1].isValidJPEG);
             Assert::IsTrue(wasRotated == FALSE);
             Assert::IsTrue(result == S_OK);
+
+            // Cleanup working folder
+            DeleteHelper(testFolderWorking);
+        }
+
+        TEST_METHOD(RotationManagerPreviewOnly)
+        {
+            // Get test file source folder
+            wchar_t testFolderSource[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(JPEGWITHEXIFROTATION_TESTFOLDER, ARRAYSIZE(testFolderSource), testFolderSource));
+
+            // Get test file working folder
+            wchar_t testFolderWorking[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(L"RotationManagerPreviewOnly", ARRAYSIZE(testFolderWorking), testFolderWorking));
+
+            // Ensure test file working folder doesn't exist
+            DeleteHelper(testFolderWorking);
+
+            // Copy the test folder source to the working folder
+            Assert::IsTrue(CopyHelper(testFolderSource, testFolderWorking));
+
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Configure the manager for preview only
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_PreviewOnly(TRUE) == S_OK);
+
+            wchar_t testFilePath[MAX_PATH];
+            Assert::IsTrue(PathCchCombine(testFilePath, ARRAYSIZE(testFilePath), testFolderWorking, g_rgTestFileData[1].filename) == S_OK);
+            CComPtr<IRotationItem> spRotationItem;
+            Assert::IsTrue(CRotationItem::s_CreateInstance(testFilePath, &spRotationItem) == S_OK);
+            Assert::IsTrue(spRotationManager->AddItem(spRotationItem) == S_OK);
+
+            Assert::IsTrue(spRotationManager->Start() == S_OK);
+
+            // Verify rotation did not happen since we specified preview only
+            UINT originalOrientation = 0;
+            BOOL isValidJPEG = FALSE;
+            BOOL isLossless = TRUE;
+            BOOL wasRotated = FALSE;
+            HRESULT result = S_FALSE;
+            Assert::IsTrue(spRotationItem->get_IsRotationLossless(&isLossless) == S_OK);
+            Assert::IsTrue(spRotationItem->get_IsValidJPEG(&isValidJPEG) == S_OK);
+            Assert::IsTrue(spRotationItem->get_WasRotated(&wasRotated) == S_OK);
+            Assert::IsTrue(spRotationItem->get_OriginalOrientation(&originalOrientation) == S_OK);
+            Assert::IsTrue(spRotationItem->get_Result(&result) == S_OK);
+            Assert::IsTrue(isLossless == FALSE);
+            Assert::IsTrue(originalOrientation == g_rgTestFileData[1].originalOrientation);
+            Assert::IsTrue(isValidJPEG == g_rgTestFileData[1].isValidJPEG);
+            Assert::IsTrue(wasRotated == FALSE);
+            Assert::IsTrue(result == S_OK);
+
+            // Cleanup working folder
+            DeleteHelper(testFolderWorking);
+        }
+
+        TEST_METHOD(EnumSubfolderOnTest)
+        {
+            // Get test file source folder
+            wchar_t testFolderSource[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(JPEGWITHEXIFROTATION_TESTFOLDER, ARRAYSIZE(testFolderSource), testFolderSource));
+
+            // Get test file working folder
+            wchar_t testFolderWorking[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(L"EnumSubfolderOnTest", ARRAYSIZE(testFolderWorking), testFolderWorking));
+
+            // Ensure test file working folder doesn't exist
+            DeleteHelper(testFolderWorking);
+
+            // Copy the test folder source to the working folder
+            Assert::IsTrue(CopyHelper(testFolderSource, testFolderWorking));
+
+            wchar_t testFolderWorkingSub[MAX_PATH] = { 0 };
+            Assert::IsTrue(StringCchCopy(testFolderWorkingSub, ARRAYSIZE(testFolderWorkingSub), testFolderWorking) == S_OK);
+            Assert::IsTrue(PathCchAppend(testFolderWorkingSub, ARRAYSIZE(testFolderWorkingSub), L"EnumSubFolderOnTestSubFolder") == S_OK);
+
+            // Copy the test folder source to the working sub folder
+            Assert::IsTrue(CopyHelper(testFolderSource, testFolderWorkingSub));
+
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Pass the root test folder.  The manager will enumerate the contents and subfolder contents
+            Assert::IsTrue(spRotationManager->AddPath(testFolderWorking) == S_OK);
+
+            // Verify we have the correct number of items enumerated and added to the roaming manager
+            UINT numItems = 0;
+            Assert::IsTrue(spRotationManager->GetItemCount(&numItems) == S_OK);
+            Assert::IsTrue(numItems == ARRAYSIZE(g_rgTestFileData) * 2);
+
+            // Cleanup working folder
+            DeleteHelper(testFolderWorking);
+        }
+
+        TEST_METHOD(EnumSubfolderOffTest)
+        {
+            // Get test file source folder
+            wchar_t testFolderSource[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(JPEGWITHEXIFROTATION_TESTFOLDER, ARRAYSIZE(testFolderSource), testFolderSource));
+
+            // Get test file working folder
+            wchar_t testFolderWorking[MAX_PATH] = { 0 };
+            Assert::IsTrue(GetTestFolderPath(L"EnumSubfolderOffTest", ARRAYSIZE(testFolderWorking), testFolderWorking));
+
+            // Ensure test file working folder doesn't exist
+            DeleteHelper(testFolderWorking);
+
+            // Copy the test folder source to the working folder
+            Assert::IsTrue(CopyHelper(testFolderSource, testFolderWorking));
+
+            wchar_t testFolderWorkingSub[MAX_PATH] = { 0 };
+            Assert::IsTrue(StringCchCopy(testFolderWorkingSub, ARRAYSIZE(testFolderWorkingSub), testFolderWorking) == S_OK);
+            Assert::IsTrue(PathCchAppend(testFolderWorkingSub, ARRAYSIZE(testFolderWorkingSub), L"EnumSubFolderOffTestSubFolder") == S_OK);
+
+            // Copy the test folder source to the working sub folder
+            Assert::IsTrue(CopyHelper(testFolderSource, testFolderWorkingSub));
+
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Configure the manager to not enumerate sub folders
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_EnumerateSubFolders(FALSE) == S_OK);
+
+            // Pass the root test folder.  The manager will enumerate the contents and subfolder contents
+            Assert::IsTrue(spRotationManager->AddPath(testFolderWorking) == S_OK);
+
+            // Verify we have the correct number of items enumerated and added to the roaming manager
+            UINT numItems = 0;
+            Assert::IsTrue(spRotationManager->GetItemCount(&numItems) == S_OK);
+            Assert::IsTrue(numItems == ARRAYSIZE(g_rgTestFileData));
 
             // Cleanup working folder
             DeleteHelper(testFolderWorking);

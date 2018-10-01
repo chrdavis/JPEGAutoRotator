@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "RotationManager.h"
 #include "helpers.h"
-#include <gdiplus.h>
 
 extern HINSTANCE g_hInst;
 
@@ -356,6 +355,11 @@ IFACEMETHODIMP CRotationManager::Shutdown()
     _Cleanup();
 
     return S_OK;
+}
+
+IFACEMETHODIMP CRotationManager::AddPath(_In_ PCWSTR path)
+{
+    return _EnumeratePath(path) ? S_OK : E_FAIL;
 }
 
 IFACEMETHODIMP CRotationManager::AddItem(_In_ IRotationItem* pItem)
@@ -856,6 +860,92 @@ HRESULT CRotationManager::_Init()
     }
 
     return hr;
+}
+
+// Just in case setup a maximum folder depth
+#define MAX_ENUM_DEPTH 300
+
+bool CRotationManager::_PathIsDotOrDotDot(_In_ PCWSTR path)
+{
+    return ((path[0] == L'.') && ((path[1] == L'\0') || ((path[1] == L'.') && (path[2] == L'\0'))));
+}
+
+
+bool CRotationManager::_IsJPEG(_In_ PCWSTR path)
+{
+    PCWSTR fileExt = PathFindExtension(path);
+    return (fileExt && (StrCmpI(fileExt, L".jpeg") == 0 || StrCmpI(fileExt, L".jpg") == 0));
+}
+
+bool CRotationManager::_EnumeratePath(_In_ PCWSTR path, UINT depth)
+{
+    bool ret = false;
+    if (depth < MAX_ENUM_DEPTH)
+    {
+        wchar_t searchPath[MAX_PATH] = { 0 };
+        wchar_t parent[MAX_PATH] = { 0 };
+
+        StringCchCopy(searchPath, ARRAYSIZE(searchPath), path);
+        StringCchCopy(parent, ARRAYSIZE(parent), path);
+
+        if (PathIsDirectory(searchPath))
+        {
+            // Add wildcard to end of folder path so we can enumerate its contents
+            PathCchAddBackslash(searchPath, ARRAYSIZE(searchPath));
+            StringCchCat(searchPath, ARRAYSIZE(searchPath), L"*");
+        }
+        else
+        {
+            PathCchRemoveFileSpec(parent, ARRAYSIZE(parent));
+        }
+
+        WIN32_FIND_DATA findData = { 0 };
+        HANDLE findHandle = FindFirstFile(searchPath, &findData);
+        if (findHandle != INVALID_HANDLE_VALUE)
+        {
+            do
+            {
+                if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+                {
+                    // Ensure the directory is no . or ..
+                    if (m_enumSubFolders && !_PathIsDotOrDotDot(findData.cFileName))
+                    {
+                        wchar_t pathSubFolder[MAX_PATH] = { 0 };
+                        if (SUCCEEDED(PathCchCombine(pathSubFolder, ARRAYSIZE(pathSubFolder), parent, findData.cFileName)))
+                        {
+                            PathCchAddBackslash(pathSubFolder, ARRAYSIZE(pathSubFolder));
+                            ret = _EnumeratePath(pathSubFolder, ++depth) || ret;
+                        }
+                    }
+                }
+                else
+                {
+                    // Is this a JPEG file?  Check the extension.
+                    if (_IsJPEG(findData.cFileName))
+                    {
+                        wchar_t pathFile[MAX_PATH] = { 0 };
+                        if (SUCCEEDED(PathCchCombine(pathFile, ARRAYSIZE(pathFile), parent, findData.cFileName)))
+                        {
+                            // Use the rotation manager's rotation item factory to create a new IRotationItem
+                            CComPtr<IRotationItem> spriNew;
+                            if (SUCCEEDED(m_spItemFactory->Create(&spriNew)))
+                            {
+                                if (SUCCEEDED(spriNew->put_Path(pathFile)))
+                                {
+                                    // Add the item to the rotation manager
+                                    ret = SUCCEEDED(AddItem(spriNew)) || ret;
+                                }
+                            }
+                        }
+                    }
+                }
+            } while (FindNextFile(findHandle, &findData));
+
+            FindClose(findHandle);
+        }
+    }
+
+    return ret;
 }
 
 void CRotationManager::_ClearEventHandlers()

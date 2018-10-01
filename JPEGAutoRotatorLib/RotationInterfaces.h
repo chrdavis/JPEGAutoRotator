@@ -40,6 +40,7 @@ public:
     IFACEMETHOD(Start)() = 0;
     IFACEMETHOD(Cancel)() = 0;
     IFACEMETHOD(Shutdown)() = 0;
+    IFACEMETHOD(AddPath)(_In_ PCWSTR path) = 0;
     IFACEMETHOD(AddItem)(_In_ IRotationItem* pItem) = 0;
     IFACEMETHOD(GetItem)(_In_ UINT index, _COM_Outptr_ IRotationItem** ppItem) = 0;
     IFACEMETHOD(GetItemCount)(_Out_ UINT* count) = 0;

@@ -10,6 +10,7 @@
 #include <Shobjidl.h>
 #include <Shlobj.h>
 #include <PathCch.h>
+#include <strsafe.h>
 
 #include "CppUnitTest.h"
 

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "JPEGAutoRotatorExt.h"
 #include "RotationUI.h"
-#include "RotationManager.h"
+#include <RotationManager.h>
 #include "resource.h"
 
 extern HINSTANCE g_hInst;

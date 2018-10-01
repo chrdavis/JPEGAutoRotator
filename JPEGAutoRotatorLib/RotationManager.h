@@ -121,6 +121,7 @@ public:
     IFACEMETHODIMP Start();
     IFACEMETHODIMP Cancel();
     IFACEMETHODIMP Shutdown();
+    IFACEMETHODIMP AddPath(_In_ PCWSTR path);
     IFACEMETHODIMP AddItem(_In_ IRotationItem* pItem);
     IFACEMETHODIMP GetItem(_In_ UINT index, _COM_Outptr_ IRotationItem** ppItem);
     IFACEMETHODIMP GetItemCount(_Out_ UINT* count);
@@ -156,6 +157,11 @@ private:
 
     void _ClearRotationItems();
     void _ClearEventHandlers();
+
+    bool _EnumeratePath(_In_ PCWSTR path, UINT depth = 0);
+
+    bool _PathIsDotOrDotDot(_In_ PCWSTR path);
+    bool _IsJPEG(_In_ PCWSTR path);
 
     HRESULT _OnItemAdded(_In_ UINT index);
     HRESULT _OnItemProcessed(_In_ UINT index);
