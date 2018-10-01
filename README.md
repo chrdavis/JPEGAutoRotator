@@ -7,6 +7,10 @@ If you find this useful, feel free to buy me a beer!
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=chrisdavis%40outlook%2ecom&lc=US&item_name=Chris%20Davis&item_number=JPEGAutoRotator&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHostedGuest)
 
+### Download
+[Latest 32 and 64 bit versions](https://github.com/chrdavis/JPEGAutoRotator/releases/latest) 
+Windows Vista,7,8,10
+
 ### Windows Shell Context Menu Extension
 JPEGAutoRotator will appear in the context menu when you right-click single or multiple images (as well as folders that are treated as image folders).  The contents of sub folders are also enumerated and rotated as necessary.  JPEGAutoRotator will show progress UI if the operation takes more than a couple of seconds.  
 
