@@ -1,5 +1,5 @@
 # JPEGAutoRotator
-A Windows context menu extension and command line tool for normalizing JPEG images that have EXIF orientation properties.  Images will be rotated accordingly and the EXIF orientation property removed.
+An open source Windows context menu extension and command line tool for normalizing JPEG images that have EXIF orientation properties.  Images will be rotated accordingly and the EXIF orientation property removed.
 
 I was motivated to create this extension after putting slideshows together for various software/hardware and discovering that the orientation property of JPEGs are not being respected.  This results in images being displayed upside down or sideways.  There are some tools that do this already, but not as seamlessly as a native context menu extension for Windows.
 
