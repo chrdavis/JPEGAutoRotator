@@ -252,6 +252,172 @@ namespace JPEGAutoRotatorUnitTests
             mockEvents->Release();
         }
 
+        TEST_METHOD(RotationManagerMaxWorkerThreads1)
+        {
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Add some mock items to the manager
+            for (int i = 0; i < 1000; i++)
+            {
+                CComPtr<IRotationItem> spItem;
+                CMockRotationItem *pmri = new CMockRotationItem();
+                pmri->m_isValidJPEG = true;
+                pmri->m_wasRotated = true;
+                pmri->m_result = S_FALSE;
+                pmri->m_originalOrientation = 2;
+                pmri->QueryInterface(IID_PPV_ARGS(&spItem));
+                wchar_t path[MAX_PATH] = { 0 };
+                Assert::IsTrue(StringCchPrintf(path, ARRAYSIZE(path), L"foo%d.jpg", i) == S_OK);
+                Assert::IsTrue(spItem->put_Path(path) == S_OK);
+                Assert::IsTrue(spRotationManager->AddItem(spItem) == S_OK);
+                pmri->Release();
+            }
+
+            // Configure the manager to use only 1 worker thread for all items
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MaxWorkerThreadCount(1) == S_OK);
+
+            // Run the manager
+            Assert::IsTrue(spRotationManager->Start() == S_OK);
+
+            // Verify that only one worker thread was used
+            UINT workerThreadCount = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_WorkerThreadCount(&workerThreadCount) == S_OK);
+            Assert::IsTrue(workerThreadCount == 1);
+        }
+
+        TEST_METHOD(RotationManagerMaxWorkerThreads4)
+        {
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Add some mock items to the manager
+            for (int i = 0; i < 1000; i++)
+            {
+                CComPtr<IRotationItem> spItem;
+                CMockRotationItem *pmri = new CMockRotationItem();
+                pmri->m_isValidJPEG = true;
+                pmri->m_wasRotated = true;
+                pmri->m_result = S_FALSE;
+                pmri->m_originalOrientation = 2;
+                pmri->QueryInterface(IID_PPV_ARGS(&spItem));
+                wchar_t path[MAX_PATH] = { 0 };
+                Assert::IsTrue(StringCchPrintf(path, ARRAYSIZE(path), L"foo%d.jpg", i) == S_OK);
+                Assert::IsTrue(spItem->put_Path(path) == S_OK);
+                Assert::IsTrue(spRotationManager->AddItem(spItem) == S_OK);
+                pmri->Release();
+            }
+
+            // Configure the manager to use a max of 4 worker thread for all items
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MaxWorkerThreadCount(4) == S_OK);
+
+            // Run the manager
+            Assert::IsTrue(spRotationManager->Start() == S_OK);
+
+            // Verify that 4 worker threads were used
+            UINT workerThreadCount = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_WorkerThreadCount(&workerThreadCount) == S_OK);
+            Assert::IsTrue(workerThreadCount == 4);
+        }
+
+        TEST_METHOD(RotationManagerMinItemsPerThread10)
+        {
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Add some mock items to the manager
+            for (int i = 0; i < 100; i++)
+            {
+                CComPtr<IRotationItem> spItem;
+                CMockRotationItem *pmri = new CMockRotationItem();
+                pmri->m_isValidJPEG = true;
+                pmri->m_wasRotated = true;
+                pmri->m_result = S_FALSE;
+                pmri->m_originalOrientation = 2;
+                pmri->QueryInterface(IID_PPV_ARGS(&spItem));
+                wchar_t path[MAX_PATH] = { 0 };
+                Assert::IsTrue(StringCchPrintf(path, ARRAYSIZE(path), L"foo%d.jpg", i) == S_OK);
+                Assert::IsTrue(spItem->put_Path(path) == S_OK);
+                Assert::IsTrue(spRotationManager->AddItem(spItem) == S_OK);
+                pmri->Release();
+            }
+
+            // Configure the manager to use a max of 4 worker thread for all items
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MaxWorkerThreadCount(20) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MinItemsPerWorkerThread(10) == S_OK);
+
+            // Run the manager
+            Assert::IsTrue(spRotationManager->Start() == S_OK);
+
+            // Verify that 10 worker threads were used
+            UINT workerThreadCount = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_WorkerThreadCount(&workerThreadCount) == S_OK);
+            Assert::IsTrue(workerThreadCount == 10);
+
+            // Verify that 10 items per thread minimum was used
+            UINT minItemsPerWorkerThread = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_MinItemsPerWorkerThread(&minItemsPerWorkerThread) == S_OK);
+            Assert::IsTrue(minItemsPerWorkerThread == 10);
+
+            // Verify that 10 items were in each worker thread
+            UINT itemsPerWorkerThread = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_ItemsPerWorkerThread(&itemsPerWorkerThread) == S_OK);
+            Assert::IsTrue(itemsPerWorkerThread == 10);
+        }
+
+        TEST_METHOD(RotationManagerMinItemsPerThread100)
+        {
+            CComPtr<IRotationManager> spRotationManager;
+            Assert::IsTrue(CRotationManager::s_CreateInstance(&spRotationManager) == S_OK);
+
+            // Add some mock items to the manager
+            for (int i = 0; i < 100; i++)
+            {
+                CComPtr<IRotationItem> spItem;
+                CMockRotationItem *pmri = new CMockRotationItem();
+                pmri->m_isValidJPEG = true;
+                pmri->m_wasRotated = true;
+                pmri->m_result = S_FALSE;
+                pmri->m_originalOrientation = 2;
+                pmri->QueryInterface(IID_PPV_ARGS(&spItem));
+                wchar_t path[MAX_PATH] = { 0 };
+                Assert::IsTrue(StringCchPrintf(path, ARRAYSIZE(path), L"foo%d.jpg", i) == S_OK);
+                Assert::IsTrue(spItem->put_Path(path) == S_OK);
+                Assert::IsTrue(spRotationManager->AddItem(spItem) == S_OK);
+                pmri->Release();
+            }
+
+            // Configure the manager to use a max of 4 worker thread for all items
+            CComPtr<IRotationManagerDiagnostics> spRotationManagerDiagnostics;
+            Assert::IsTrue(spRotationManager->QueryInterface(&spRotationManagerDiagnostics) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MaxWorkerThreadCount(20) == S_OK);
+            Assert::IsTrue(spRotationManagerDiagnostics->put_MinItemsPerWorkerThread(100) == S_OK);
+
+            // Run the manager
+            Assert::IsTrue(spRotationManager->Start() == S_OK);
+
+            // Verify that 1 worker thread was used
+            UINT workerThreadCount = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_WorkerThreadCount(&workerThreadCount) == S_OK);
+            Assert::IsTrue(workerThreadCount == 1);
+
+            // Verify that 100 items per thread minimum was used
+            UINT minItemsPerWorkerThread = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_MinItemsPerWorkerThread(&minItemsPerWorkerThread) == S_OK);
+            Assert::IsTrue(minItemsPerWorkerThread == 100);
+
+            // Verify that 100 items were in the worker thread
+            UINT itemsPerWorkerThread = 0;
+            Assert::IsTrue(spRotationManagerDiagnostics->get_ItemsPerWorkerThread(&itemsPerWorkerThread) == S_OK);
+            Assert::IsTrue(itemsPerWorkerThread == 100);
+        }
+
         TEST_METHOD(RotationManagerEventsVerifyCancel)
         {
             class CMockRotationManagerEventsWithCancel : public CMockRotationManagerEvents
