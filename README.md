@@ -16,7 +16,7 @@ JPEGAutoRotator will appear in the context menu when you right-click single or m
 
 The code takes advantage of systems with multiple processors/cores by parallelizing the work across multiple threads resulting in faster execution.
 
-Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8.  Almost all modern digital cameras produce images of such size.
+Rotations are lossless unless JPEGs do not have dimensions evenly divisible by 8.  Almost all modern digital cameras produce images of such size.
 
 #### Screenshots
 
