@@ -23,6 +23,9 @@ Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8. 
 ### Command Line
 A command line version (JPEGAutoRotator.exe) is also available which provides more control over the operation that is performed.
 ```
+Normalize JPEG images with EXIF orientation properties. Images are rotated based on the EXIF data
+and the orientation property is then removed.
+
 USAGE:
   JPEGAutoRotator [Options] Path
 
@@ -32,7 +35,8 @@ Options:
   -Verbose              Detailed output of operation and results to the console
   -NoSubFolders         Do not enumerate items in sub folders of path
   -LosslessOnly         Do not rotate images which would lose data as a result.
-  -ThreadCount          Number of threads used for the rotations. Default is the number of cores on the device.
+  -ThreadCount n        Number of threads used for the rotations. Default is the number of cores on the device.
+  -MinItemsPerThread n  The minimum number of items per worker thread.
   -Stats                Print detailed information of the operation that was performed to the console.
   -Progress             Print progress of operation to the console.
   -Preview              Provides a printed preview in csv format of what will be performed without modifying any images.
