@@ -192,6 +192,7 @@
   <ItemGroup>
     <ClInclude Include="..\JPEGAutoRotatorExt\RotationUI.h" />
     <ClInclude Include="MockRotationItem.h" />
+    <ClInclude Include="MockRotationManagerEvents.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

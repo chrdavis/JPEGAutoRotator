@@ -83,7 +83,6 @@ private:
 
 class CRotationManager : 
     public IRotationManager,
-    public IRotationManagerEvents,
     public IRotationManagerDiagnostics
 {
 public:
@@ -95,7 +94,6 @@ public:
         static const QITAB qit[] =
         {
             QITABENT(CRotationManager, IRotationManager),
-            QITABENT(CRotationManager, IRotationManagerEvents),
             QITABENT(CRotationManager, IRotationManagerDiagnostics),
             { 0, 0 },
         };
@@ -145,13 +143,6 @@ public:
     IFACEMETHODIMP get_ItemsPerWorkerThread(_Out_ UINT* numItemsPerThread);
     IFACEMETHODIMP put_ItemsPerWorkerThread(_In_ UINT numItemsPerThread);
 
-    // IRotationManagerEvents
-    IFACEMETHODIMP OnItemAdded(_In_ UINT index);
-    IFACEMETHODIMP OnItemProcessed(_In_ UINT index);
-    IFACEMETHODIMP OnProgress(_In_ UINT completed, _In_ UINT total);
-    IFACEMETHODIMP OnCanceled();
-    IFACEMETHODIMP OnCompleted();
-
     static HRESULT s_CreateInstance(_COM_Outptr_ IRotationManager** pprm);
 
 private:
@@ -165,6 +156,12 @@ private:
 
     void _ClearRotationItems();
     void _ClearEventHandlers();
+
+    HRESULT _OnItemAdded(_In_ UINT index);
+    HRESULT _OnItemProcessed(_In_ UINT index);
+    HRESULT _OnProgress(_In_ UINT completed, _In_ UINT total);
+    HRESULT _OnCanceled();
+    HRESULT _OnCompleted();
 
     static DWORD WINAPI s_rotationWorkerThread(_In_ void* pv);
 

@@ -74,7 +74,7 @@ struct RotateWorkerThreadData
     UINT firstIndex;
     UINT lastIndex;
     DWORD managerThreadId;
-    HANDLE hStartEvent;
+    HANDLE startEvent;
     HANDLE cancelEvent;
     CComPtr<IRotationManager> sprm;
 };
@@ -311,12 +311,14 @@ IFACEMETHODIMP CRotationManager::Advise(_In_ IRotationManagerEvents* pEvents, _O
 
 IFACEMETHODIMP CRotationManager::UnAdvise(_In_ DWORD cookie)
 {
+    HRESULT hr = E_FAIL;
     CSRWExclusiveAutoLock lock(&m_lockEvents);
 
     for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
     {
         if (it->cookie == cookie)
         {
+            hr = S_OK;
             it->cookie = 0;
             if (it->pEvents)
             {
@@ -327,7 +329,7 @@ IFACEMETHODIMP CRotationManager::UnAdvise(_In_ DWORD cookie)
         }
     }
 
-    return S_OK;
+    return hr;
 }
 
 IFACEMETHODIMP CRotationManager::Start()
@@ -365,7 +367,7 @@ IFACEMETHODIMP CRotationManager::AddItem(_In_ IRotationItem* pItem)
         pItem->AddRef();
     }
 
-    OnItemAdded(static_cast<UINT>(m_rotationItems.size() - 1));
+    _OnItemAdded(static_cast<UINT>(m_rotationItems.size() - 1));
 
     return S_OK;
 }
@@ -408,82 +410,6 @@ IFACEMETHODIMP CRotationManager::GetRotationItemFactory(_In_ IRotationItemFactor
         (*ppItemFactory)->AddRef();
     }
     return hr;
-}
-
-// IRotationManagerEvents
-IFACEMETHODIMP CRotationManager::OnItemAdded(_In_ UINT index)
-{
-    CSRWExclusiveAutoLock lock(&m_lockEvents);
-
-    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
-    {
-        if (it->pEvents)
-        {
-            it->pEvents->OnItemAdded(index);
-        }
-    }
-
-    return S_OK;
-}
-
-IFACEMETHODIMP CRotationManager::OnItemProcessed(_In_ UINT index)
-{
-    CSRWExclusiveAutoLock lock(&m_lockEvents);
-
-    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
-    {
-        if (it->pEvents)
-        {
-            it->pEvents->OnItemProcessed(index);
-        }
-    }
-
-    return S_OK;
-}
-
-IFACEMETHODIMP CRotationManager::OnProgress(_In_ UINT completed, _In_ UINT total)
-{
-    CSRWExclusiveAutoLock lock(&m_lockEvents);
-
-    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
-    {
-        if (it->pEvents)
-        {
-            it->pEvents->OnProgress(completed, total);
-        }
-    }
-
-    return S_OK;
-}
-
-IFACEMETHODIMP CRotationManager::OnCanceled()
-{
-    CSRWExclusiveAutoLock lock(&m_lockEvents);
-
-    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
-    {
-        if (it->pEvents)
-        {
-            it->pEvents->OnCanceled();
-        }
-    }
-
-    return S_OK;
-}
-
-IFACEMETHODIMP CRotationManager::OnCompleted()
-{
-    CSRWExclusiveAutoLock lock(&m_lockEvents);
-
-    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
-    {
-        if (it->pEvents)
-        {
-            it->pEvents->OnCompleted();
-        }
-    }
-
-    return S_OK;
 }
 
 // IRotationManagerDiagnostics
@@ -588,6 +514,81 @@ HRESULT CRotationManager::s_CreateInstance(_COM_Outptr_ IRotationManager** pprm)
     return hr;
 }
 
+HRESULT CRotationManager::_OnItemAdded(_In_ UINT index)
+{
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
+
+    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
+    {
+        if (it->pEvents)
+        {
+            it->pEvents->OnItemAdded(index);
+        }
+    }
+
+    return S_OK;
+}
+
+HRESULT CRotationManager::_OnItemProcessed(_In_ UINT index)
+{
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
+
+    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
+    {
+        if (it->pEvents)
+        {
+            it->pEvents->OnItemProcessed(index);
+        }
+    }
+
+    return S_OK;
+}
+
+HRESULT CRotationManager::_OnProgress(_In_ UINT completed, _In_ UINT total)
+{
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
+
+    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
+    {
+        if (it->pEvents)
+        {
+            it->pEvents->OnProgress(completed, total);
+        }
+    }
+
+    return S_OK;
+}
+
+HRESULT CRotationManager::_OnCanceled()
+{
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
+
+    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
+    {
+        if (it->pEvents)
+        {
+            it->pEvents->OnCanceled();
+        }
+    }
+
+    return S_OK;
+}
+
+HRESULT CRotationManager::_OnCompleted()
+{
+    CSRWExclusiveAutoLock lock(&m_lockEvents);
+
+    for (std::vector<ROTATION_MANAGER_EVENT>::iterator it = m_rotationManagerEvents.begin(); it != m_rotationManagerEvents.end(); ++it)
+    {
+        if (it->pEvents)
+        {
+            it->pEvents->OnCompleted();
+        }
+    }
+
+    return S_OK;
+}
+
 HRESULT CRotationManager::_PerformRotation()
 {
     // Create worker threads which will message us progress and
@@ -624,12 +625,12 @@ HRESULT CRotationManager::_PerformRotation()
                 if (msg.message == ROTM_ROTI_ITEM_PROCESSED)
                 {
                     processedCount++;
-                    OnItemProcessed(static_cast<UINT>(msg.lParam));
-                    OnProgress(processedCount, totalItems);
+                    _OnItemProcessed(static_cast<UINT>(msg.lParam));
+                    _OnProgress(processedCount, totalItems);
                 }
                 else if (msg.message == ROTM_ROTI_CANCELED)
                 {
-                    OnCanceled();
+                    _OnCanceled();
                 }
                 else if (msg.message == ROTM_ROTI_COMPLETE)
                 {
@@ -646,7 +647,7 @@ HRESULT CRotationManager::_PerformRotation()
             }
         }
 
-        OnCompleted();
+        _OnCompleted();
     }
 
     return 0;
@@ -672,7 +673,7 @@ HRESULT CRotationManager::_CreateWorkerThreads()
                 prwtd->firstIndex = firstIndex;
                 prwtd->lastIndex = lastIndex;
                 prwtd->managerThreadId = GetCurrentThreadId();
-                prwtd->hStartEvent = m_startEvent;
+                prwtd->startEvent = m_startEvent;
                 prwtd->cancelEvent = m_cancelEvent;
                 prwtd->sprm = this;
                 m_workerThreadInfo[u].workerHandle = CreateThread(nullptr, 0, s_rotationWorkerThread, prwtd, 0, &m_workerThreadInfo[u].threadId);
@@ -734,7 +735,7 @@ HRESULT CRotationManager::_GetWorkerThreadDimensions()
                 if ((totalItems % m_workerThreadCount) > 0)
                 {
                     // Take into account the leftover items.  This will spread the remainder over
-                    // some of the threads.
+                    // the worker threads.
                     m_itemsPerWorkerThread++;
                 }
             }
@@ -753,7 +754,7 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
         if (prwtd)
         {
             // Wait to be told we can begin
-            if (WaitForSingleObject(prwtd->hStartEvent, INFINITE) == WAIT_OBJECT_0)
+            if (WaitForSingleObject(prwtd->startEvent, INFINITE) == WAIT_OBJECT_0)
             {
                 CComPtr<IRotationManagerDiagnostics> sprmd;
                 if (SUCCEEDED(prwtd->sprm->QueryInterface(IID_PPV_ARGS(&sprmd))))
@@ -781,7 +782,7 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
                             // S_FALSE means we have not processed this item yet
                             if (hrWork == S_FALSE)
                             {
-                                // Perform the rotation
+                                // Load the image
                                 hrWork = spItem->Load();
                                 if (SUCCEEDED(hrWork))
                                 {
@@ -789,7 +790,9 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
                                     BOOL isValidJPEG = FALSE;
                                     spItem->get_IsValidJPEG(&isValidJPEG);
                                     spItem->get_IsRotationLossless(&isLossless);
-                                    if (!previewOnly && isValidJPEG && (!losslessOnly || !isLossless))
+                                    // Don't perform the rotation if in preview mode, not a valid JPEG,
+                                    // or it is not lossless and we are set to lossless-only mode.
+                                    if (!previewOnly && isValidJPEG && (!losslessOnly || isLossless))
                                     {
                                         UINT orientation = 0;
                                         spItem->get_OriginalOrientation(&orientation);
@@ -830,9 +833,9 @@ HRESULT CRotationManager::_Init()
 
     ZeroMemory(m_workerThreadInfo, sizeof(m_workerThreadInfo));
 
-    // Event used to signal worker thread that it can start
+    // Event used to signal worker threads that they can start
     m_startEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    // Event used to signal worker thread in the event of a cancel
+    // Event used to signal worker threads in the event of a cancel
     m_cancelEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
     HRESULT hr = (m_startEvent && m_cancelEvent) ? S_OK : E_FAIL;
