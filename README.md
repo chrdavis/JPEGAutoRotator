@@ -59,8 +59,10 @@ Number of items processed:      1009
 Number of valid JPEGs:          1009
 Number of JPEGs rotated:        198
 
-Worker Threads: 8
-Max Items Per Thread: 126
+Max Worker Threads:     8
+Worker Threads:         8
+Min Items Per Thread:   10
+Items Per Thread:       126
 
 Operation took: 55703 ms
 ```
