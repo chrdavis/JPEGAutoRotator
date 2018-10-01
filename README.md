@@ -14,7 +14,7 @@ If you find this useful, feel free to buy me a beer!
 Windows Vista,7,8,10
 
 ### Windows Shell Context Menu Extension
-JPEGAutoRotator will appear in the context menu when you right-click single or multiple images (as well as folders that are treated as image folders).  The contents of sub folders are also enumerated and rotated as necessary.  JPEGAutoRotator will show progress UI if the operation takes more than a couple of seconds.  
+JPEGAutoRotator will appear in the context menu when you right-click single or multiple images (as well as folders that are treated as image folders).  The contents of sub folders are also enumerated and rotated as necessary.  JPEGAutoRotator will show a progress dialog if the operation takes more than a couple of seconds.  
 
 The code takes advantage of systems with multiple processors/cores by parallelizing the work across multiple threads resulting in faster execution.
 
