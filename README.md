@@ -51,7 +51,7 @@ Examples:
   > JPEGAutoRotator c:\users\chris\pictures\mypicturetorotate.jpg
   > JPEGAutoRotator c:\foo\
   > JPEGAutoRotator c:\bar\*.jpg
-  > JPEGAutoRotator -ShowProgress -Stats c:\test\
+  > JPEGAutoRotator -Progress -Stats c:\test\
   > JPEGAutoRotator -Preview -LosslessOnly -NoSubFolders c:\test\
 ```
 
