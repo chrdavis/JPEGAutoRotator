@@ -7,6 +7,10 @@ If you find this useful, feel free to buy me a beer!
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=chrisdavis%40outlook%2ecom&lc=US&item_name=Chris%20Davis&item_number=JPEGAutoRotator&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHostedGuest)
 
+### Download
+[Latest 32 and 64 bit versions](https://github.com/chrdavis/JPEGAutoRotator/releases/latest) 
+Windows Vista,7,8,10
+
 ### Windows Shell Context Menu Extension
 JPEGAutoRotator will appear in the context menu when you right-click single or multiple images (as well as folders that are treated as image folders).  The contents of sub folders are also enumerated and rotated as necessary.  JPEGAutoRotator will show progress UI if the operation takes more than a couple of seconds.  
 
@@ -23,6 +27,9 @@ Rotation are lossess unless JPEGs do not have dimensions evenly divisible by 8. 
 ### Command Line
 A command line version (JPEGAutoRotator.exe) is also available which provides more control over the operation that is performed.
 ```
+Normalize JPEG images with EXIF orientation properties. Images are rotated based on the EXIF data
+and the orientation property is then removed.
+
 USAGE:
   JPEGAutoRotator [Options] Path
 
@@ -32,7 +39,8 @@ Options:
   -Verbose              Detailed output of operation and results to the console
   -NoSubFolders         Do not enumerate items in sub folders of path
   -LosslessOnly         Do not rotate images which would lose data as a result.
-  -ThreadCount          Number of threads used for the rotations. Default is the number of cores on the device.
+  -ThreadCount n        Number of threads used for the rotations. Default is the number of cores on the device.
+  -MinItemsPerThread n  The minimum number of items per worker thread.
   -Stats                Print detailed information of the operation that was performed to the console.
   -Progress             Print progress of operation to the console.
   -Preview              Provides a printed preview in csv format of what will be performed without modifying any images.
@@ -55,8 +63,10 @@ Number of items processed:      1009
 Number of valid JPEGs:          1009
 Number of JPEGs rotated:        198
 
-Worker Threads: 8
-Max Items Per Thread: 126
+Max Worker Threads:     8
+Worker Threads:         8
+Min Items Per Thread:   10
+Items Per Thread:       126
 
 Operation took: 55703 ms
 ```
