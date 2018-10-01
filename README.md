@@ -3,7 +3,7 @@ An open source Windows context menu extension and command line tool for normaliz
 
 [The Problem - Why your photos don't always appear correctly rotated](https://www.howtogeek.com/254830/why-your-photos-dont-always-appear-correctly-rotated/)
 
-I was motivated to create this extension after putting slideshows together for various software/hardware and discovering that the orientation property of JPEGs are not being respected.  This results in images being displayed upside down or sideways.  There are some tools that do this already, but not as seamlessly as a native context menu extension for Windows.
+I was motivated to create this extension after putting slideshows together for various software/hardware and discovering that the orientation property of JPEGs are not being respected.  This resulted in images being displayed upside down or sideways.  There are some tools that do this already, but not as seamlessly as a native context menu extension for Windows.
 
 If you find this useful, feel free to buy me a beer!
 
