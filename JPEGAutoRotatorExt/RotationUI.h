@@ -57,6 +57,7 @@ private:
     HRESULT _Initialize(_In_ IRotationManager* prm, _In_opt_ IDataObject* pdo);
     void _Cleanup();
     void _CheckIfCanceled();
+    void _ShowResults();
 
     long m_refCount = 1;
     DWORD m_cookie = 0;

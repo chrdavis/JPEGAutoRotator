@@ -69,6 +69,11 @@ IFACEMETHODIMP CRotationUI::Start()
     {
         m_sppd->StopProgressDialog();
     }
+
+    if (SUCCEEDED(hr))
+    {
+        _ShowResults();
+    }
     return hr;
 }
 
@@ -207,4 +212,36 @@ void CRotationUI::_Cleanup()
 
     m_sprm = nullptr;
     m_sppd = nullptr;
+}
+
+void CRotationUI::_ShowResults()
+{
+    if (m_sprm)
+    {
+        // Show Results
+        wchar_t resultstitle[100] = { 0 };
+        LoadString(g_hInst, IDS_ROTATIONRESULTSTITLE, resultstitle, ARRAYSIZE(resultstitle));
+        wchar_t resultsdescfmt[100] = { 0 };
+        LoadString(g_hInst, IDS_ROTATIONRESULTS, resultsdescfmt, ARRAYSIZE(resultsdescfmt));
+
+        UINT itemCount = 0;
+        m_sprm->GetItemCount(&itemCount);
+
+        UINT numRotated = 0;
+        for (UINT i = 0; i < itemCount; i++)
+        {
+            CComPtr<IRotationItem> spItem;
+            m_sprm->GetItem(i, &spItem);
+            BOOL wasRotated = FALSE;
+            if (SUCCEEDED(spItem->get_WasRotated(&wasRotated)) && wasRotated)
+            {
+                numRotated++;
+            }
+        }
+
+        wchar_t resultsdesc[100] = { 0 };
+        StringCchPrintf(resultsdesc, ARRAYSIZE(resultsdesc), resultsdescfmt, numRotated, itemCount);
+
+        MessageBox(NULL, resultsdesc, resultstitle, MB_ICONINFORMATION | MB_OK);
+    }
 }
