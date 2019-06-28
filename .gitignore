@@ -153,3 +153,7 @@ Win32/Debug/TestFiles/JPEGWithExifRotation/Portrait_5.jpg
 Win32/Debug/TestFiles/JPEGWithExifRotation/Portrait_6.jpg
 Win32/Debug/TestFiles/JPEGWithExifRotation/Portrait_7.jpg
 Win32/Debug/TestFiles/JPEGWithExifRotation/Portrait_8.jpg
+*.suo
+*.db-shm
+/JPEGAutoRotator/(Platform)/Release/JPEGAutoRotator.vcxproj.FileListAbsolute.txt
+*.txt

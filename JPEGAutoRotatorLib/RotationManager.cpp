@@ -831,7 +831,7 @@ DWORD WINAPI CRotationManager::s_rotationWorkerThread(_In_ void* pv)
 
 HRESULT CRotationManager::_Init()
 {
-    // Initialize GDIPlus now. All of our GDIPlus usage is in CRenameItem.
+    // Initialize GDIPlus now
     GdiplusStartupInput gdiplusStartupInput;
     GdiplusStartup(&m_gdiplusToken, &gdiplusStartupInput, nullptr);
 
