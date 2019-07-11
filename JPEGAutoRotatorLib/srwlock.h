@@ -10,22 +10,26 @@ public:
         InitializeSRWLock(&m_lock);
     }
 
-    void LockShared()
+    _Acquires_shared_lock_(this->m_lock)
+        void LockShared()
     {
         AcquireSRWLockShared(&m_lock);
     }
 
-    void LockExclusive()
+    _Acquires_exclusive_lock_(this->m_lock)
+        void LockExclusive()
     {
         AcquireSRWLockExclusive(&m_lock);
     }
 
-    void ReleaseShared()
+    _Releases_shared_lock_(this->m_lock)
+        void ReleaseShared()
     {
         ReleaseSRWLockShared(&m_lock);
     }
 
-    void ReleaseExclusive()
+    _Releases_exclusive_lock_(this->m_lock)
+        void ReleaseExclusive()
     {
         ReleaseSRWLockExclusive(&m_lock);
     }
@@ -42,7 +46,7 @@ private:
 class CSRWExclusiveAutoLock
 {
 public:
-    CSRWExclusiveAutoLock(CSRWLock *srwLock)
+    CSRWExclusiveAutoLock(CSRWLock* srwLock)
     {
         m_pSRWLock = srwLock;
         srwLock->LockExclusive();
@@ -53,14 +57,14 @@ public:
         m_pSRWLock->ReleaseExclusive();
     }
 protected:
-    CSRWLock *m_pSRWLock;
+    CSRWLock* m_pSRWLock;
 };
 
 // RAII over an SRWLock (read)
 class CSRWSharedAutoLock
 {
 public:
-    CSRWSharedAutoLock(CSRWLock *srwLock)
+    CSRWSharedAutoLock(CSRWLock* srwLock)
     {
         m_pSRWLock = srwLock;
         srwLock->LockShared();
@@ -71,5 +75,5 @@ public:
         m_pSRWLock->ReleaseShared();
     }
 protected:
-    CSRWLock *m_pSRWLock;
+    CSRWLock* m_pSRWLock;
 };
