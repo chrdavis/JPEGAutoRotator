@@ -376,7 +376,7 @@
                                                 {
                                                     "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_C2B5A9E4F2B74A2FAB7CE5846BFE9ED2"
                                                     {
-                                                    "Name" = "8:New Value #1"
+                                                    "Name" = "8:"
                                                     "Condition" = "8:"
                                                     "Transitive" = "11:FALSE"
                                                     "ValueTypes" = "3:1"
