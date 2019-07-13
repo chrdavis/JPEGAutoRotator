@@ -235,7 +235,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:JPEGAutoRotator"
         "ProductCode" = "8:{1211A8B9-B6E6-4220-89F5-C066590A6950}"
-        "PackageCode" = "8:{854132B8-D958-458A-ACBD-E872EE0E307A}"
+        "PackageCode" = "8:{B4E0E306-AFB5-45DA-9563-6E5B19087CA2}"
         "UpgradeCode" = "8:{6930F53A-E2E3-41F4-91A0-E455CA0286D1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
