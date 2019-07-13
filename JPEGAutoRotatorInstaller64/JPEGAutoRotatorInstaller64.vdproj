@@ -665,6 +665,14 @@
                                         }
                                         "Values"
                                         {
+                                            "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_0B4BBD8C1F4043B88C1F926F710195A1"
+                                            {
+                                            "Name" = "8:"
+                                            "Condition" = "8:"
+                                            "Transitive" = "11:FALSE"
+                                            "ValueTypes" = "3:1"
+                                            "Value" = "8:JPEG Auto Rotator Shell Extension"
+                                            }
                                         }
                                     }
                                 }
@@ -792,6 +800,14 @@
                                 }
                                 "Values"
                                 {
+                                    "{ADCFDA98-8FDD-45E4-90BC-E3D20B029870}:_15F40A77848C4F4EB66F591DFA1F9BA0"
+                                    {
+                                    "Name" = "8:"
+                                    "Condition" = "8:"
+                                    "Transitive" = "11:FALSE"
+                                    "ValueTypes" = "3:1"
+                                    "Value" = "8:JPEG Auto Rotator Shell Extension"
+                                    }
                                 }
                             }
                         }
