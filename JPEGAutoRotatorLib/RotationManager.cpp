@@ -263,7 +263,19 @@ IFACEMETHODIMP CRotationItem::Rotate()
                         IStream_Reset(spstrm);
                         CLSID jpgClsid;
                         GetEncoderClsid(L"image/jpeg", &jpgClsid);
-                        hr = (pImage->Save(spstrm, &jpgClsid, nullptr) == Ok) ? S_OK : E_FAIL;
+                        
+                        // Set encoder parameters to preserve quality and color profiles.
+                        // Using quality=100 ensures maximum JPEG quality and preserves embedded
+                        // color profiles (ICC profiles), preventing color shifts during rotation.
+                        EncoderParameters encoderParams;
+                        encoderParams.Count = 1;
+                        encoderParams.Parameter[0].Guid = EncoderQuality;
+                        encoderParams.Parameter[0].Type = EncoderParameterValueTypeLong;
+                        encoderParams.Parameter[0].NumberOfValues = 1;
+                        ULONG quality = 100;
+                        encoderParams.Parameter[0].Value = &quality;
+                        
+                        hr = (pImage->Save(spstrm, &jpgClsid, &encoderParams) == Ok) ? S_OK : E_FAIL;
                         if (SUCCEEDED(hr))
                         {
                             m_wasRotated = true;
